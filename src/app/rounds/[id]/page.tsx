@@ -1,0 +1,301 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { getCurrentMember } from "@/lib/session";
+import {
+  getLatestTeamAssignment,
+  getRound,
+  getRoundResult,
+  listMembers,
+  listParticipants,
+  listScores,
+} from "@/lib/queries";
+import { formatDate, formatTime } from "@/lib/format";
+import { StatusBadge } from "@/components/StatusBadge";
+import { TEAM_MODE_DESCRIPTION, TEAM_MODE_LABEL, TEAM_THEMES } from "@/lib/types";
+import type { TeamMode } from "@/lib/types";
+import {
+  closeRsvpAction,
+  createTeamAssignmentAction,
+  reopenRsvpAction,
+  rsvpAction,
+  startRoundAction,
+} from "../actions";
+
+export const dynamic = "force-dynamic";
+
+const MODES: TeamMode[] = [
+  "random",
+  "couples_together",
+  "couples_split",
+  "gender_balance",
+  "skill_balance",
+];
+
+export default async function RoundDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const member = await getCurrentMember();
+  if (!member) redirect("/");
+
+  const round = await getRound(id);
+  if (!round) notFound();
+
+  const [members, participants, assignment, scores, result] = await Promise.all([
+    listMembers(),
+    listParticipants(id),
+    getLatestTeamAssignment(id),
+    listScores(id),
+    getRoundResult(id),
+  ]);
+
+  const memberMap = new Map(members.map((m) => [m.id, m]));
+  const participantMap = new Map(participants.map((p) => [p.member_id, p]));
+  const attendingMembers = members.filter(
+    (m) => participantMap.get(m.id)?.attending
+  );
+  const myEntry = participantMap.get(member.id);
+
+  return (
+    <main className="flex flex-col gap-6">
+      <header className="flex items-center justify-between">
+        <Link href="/" className="text-sm font-semibold text-fairway">
+          ← 홈으로
+        </Link>
+        <StatusBadge status={round.status} />
+      </header>
+
+      <section className="card flex flex-col gap-1">
+        <h1 className="text-2xl font-extrabold text-fairway-dark">
+          {round.golf_course}
+        </h1>
+        <p className="text-foreground/70">
+          {formatDate(round.date)} · {formatTime(round.time)}
+        </p>
+      </section>
+
+      {round.status === "모집중" && (
+        <section className="card flex flex-col gap-3">
+          <h2 className="text-lg font-bold">참가 체크</h2>
+          <div className="flex gap-2">
+            <form action={rsvpAction} className="flex-1">
+              <input type="hidden" name="round_id" value={round.id} />
+              <input type="hidden" name="attending" value="true" />
+              <button
+                type="submit"
+                className={`btn w-full ${
+                  myEntry?.attending ? "btn-primary" : "btn-secondary"
+                }`}
+              >
+                참가 O
+              </button>
+            </form>
+            <form action={rsvpAction} className="flex-1">
+              <input type="hidden" name="round_id" value={round.id} />
+              <input type="hidden" name="attending" value="false" />
+              <button
+                type="submit"
+                className={`btn w-full ${
+                  myEntry && !myEntry.attending ? "btn-danger" : "btn-secondary"
+                }`}
+              >
+                불참 X
+              </button>
+            </form>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            {members
+              .filter((m) => !m.is_guest || participantMap.has(m.id))
+              .map((m) => {
+                const entry = participantMap.get(m.id);
+                const label = entry ? (entry.attending ? "참가" : "불참") : "미응답";
+                return (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between rounded-lg px-2 py-1.5"
+                  >
+                    <span className="font-medium">{m.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-sm font-semibold ${
+                          entry?.attending
+                            ? "text-fairway"
+                            : entry
+                              ? "text-danger"
+                              : "text-foreground/40"
+                        }`}
+                      >
+                        {label}
+                      </span>
+                      {member.is_admin && (
+                        <form action={rsvpAction} className="flex gap-1">
+                          <input type="hidden" name="round_id" value={round.id} />
+                          <input type="hidden" name="member_id" value={m.id} />
+                          <input type="hidden" name="attending" value="true" />
+                          <button className="btn btn-secondary !px-2 !py-1 !text-xs">O</button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+
+          {member.is_admin && (
+            <form action={closeRsvpAction}>
+              <input type="hidden" name="round_id" value={round.id} />
+              <button type="submit" className="btn btn-primary w-full">
+                참가 체크 마감하기 ({attendingMembers.length}명 참가)
+              </button>
+            </form>
+          )}
+        </section>
+      )}
+
+      {round.status === "마감" && (
+        <section className="card flex flex-col gap-3">
+          <h2 className="text-lg font-bold">
+            팀 편성 대기중 ({attendingMembers.length}명 참가 확정)
+          </h2>
+          {member.is_admin ? (
+            <form action={createTeamAssignmentAction} className="flex flex-col gap-3">
+              <input type="hidden" name="round_id" value={round.id} />
+              <div className="flex flex-col gap-2">
+                {MODES.map((mode, idx) => (
+                  <label
+                    key={mode}
+                    className="flex cursor-pointer flex-col rounded-xl border-2 border-sand px-4 py-3"
+                  >
+                    <span className="flex items-center gap-2 font-bold">
+                      <input type="radio" name="mode" value={mode} defaultChecked={idx === 0} />
+                      {TEAM_MODE_LABEL[mode]}
+                    </span>
+                    <span className="mt-1 text-sm text-foreground/60">
+                      {TEAM_MODE_DESCRIPTION[mode]}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <button type="submit" className="btn btn-primary w-full">
+                🏌️ 팀 뽑기 게임 시작하기
+              </button>
+            </form>
+          ) : (
+            <p className="text-foreground/70">관리자가 팀을 편성하고 있어요. 잠시만 기다려주세요!</p>
+          )}
+          {member.is_admin && (
+            <form action={reopenRsvpAction}>
+              <input type="hidden" name="round_id" value={round.id} />
+              <button type="submit" className="btn btn-secondary w-full">
+                참가 체크 다시 열기
+              </button>
+            </form>
+          )}
+        </section>
+      )}
+
+      {(round.status === "팀확정" || round.status === "진행중" || round.status === "완료") &&
+        assignment && (
+          <section className="card flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold">팀 편성 결과</h2>
+              <span className="text-sm text-foreground/50">
+                {TEAM_MODE_LABEL[assignment.mode]} · {assignment.attempt_no}차 뽑기
+              </span>
+            </div>
+            <div className="flex flex-col gap-3">
+              {Object.entries(assignment.teams).map(([teamNo, ids]) => {
+                const theme = TEAM_THEMES[Number(teamNo) - 1] ?? TEAM_THEMES[0];
+                return (
+                  <div
+                    key={teamNo}
+                    className="rounded-xl p-3"
+                    style={{ background: `${theme.color}1a`, border: `2px solid ${theme.color}` }}
+                  >
+                    <p className="font-extrabold" style={{ color: theme.color }}>
+                      {theme.name} ({ids.length}명)
+                    </p>
+                    <p className="mt-1 text-foreground/80">
+                      {ids.map((mid) => memberMap.get(mid)?.name ?? "?").join(", ")}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+            <Link href={`/rounds/${round.id}/draw`} className="btn btn-secondary w-full">
+              🎱 뽑기 화면 다시 보기
+            </Link>
+            {member.is_admin && round.status !== "완료" && (
+              <details className="rounded-xl border-2 border-sand p-3">
+                <summary className="cursor-pointer font-bold">🔁 다시 팀짜기</summary>
+                <form action={createTeamAssignmentAction} className="mt-3 flex flex-col gap-2">
+                  <input type="hidden" name="round_id" value={round.id} />
+                  {MODES.map((mode, idx) => (
+                    <label key={mode} className="flex items-center gap-2">
+                      <input type="radio" name="mode" value={mode} defaultChecked={idx === 0} />
+                      {TEAM_MODE_LABEL[mode]}
+                    </label>
+                  ))}
+                  <button type="submit" className="btn btn-primary w-full">
+                    새로 뽑기
+                  </button>
+                </form>
+              </details>
+            )}
+          </section>
+        )}
+
+      {(round.status === "팀확정" || round.status === "진행중") && (
+        <section className="card flex flex-col gap-3">
+          <h2 className="text-lg font-bold">라운딩 진행</h2>
+          {member.is_admin && round.status === "팀확정" && (
+            <form action={startRoundAction}>
+              <input type="hidden" name="round_id" value={round.id} />
+              <button type="submit" className="btn btn-secondary w-full">
+                라운딩 시작 처리
+              </button>
+            </form>
+          )}
+          <Link href={`/rounds/${round.id}/score`} className="btn btn-primary w-full">
+            📝 스코어보드 입력하기
+          </Link>
+        </section>
+      )}
+
+      {round.status === "완료" && (
+        <section className="card flex flex-col gap-3">
+          <h2 className="text-lg font-bold">스코어</h2>
+          <div className="flex flex-col gap-1">
+            {scores
+              .sort((a, b) => a.score - b.score)
+              .map((s) => (
+                <div key={s.id} className="flex items-center justify-between">
+                  <span>{memberMap.get(s.member_id)?.name ?? "?"}</span>
+                  <span className="font-bold">{s.score}타</span>
+                </div>
+              ))}
+          </div>
+          {result && result.photos.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {result.photos.map((url) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={url}
+                  src={url}
+                  alt="라운딩 사진"
+                  className="aspect-square rounded-lg object-cover"
+                />
+              ))}
+            </div>
+          )}
+          <Link href="/memories" className="btn btn-secondary w-full">
+            📸 추억 페이지에서 보기
+          </Link>
+        </section>
+      )}
+    </main>
+  );
+}

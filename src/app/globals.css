@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f3ea;
+  --foreground: #1f2a20;
+  --fairway: #2f7a4f;
+  --fairway-dark: #204f34;
+  --sand: #e9dcb8;
+  --sky: #1d5c9c;
+  --accent: #b45309;
+  --card: #ffffff;
+  --danger: #b3261e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-fairway: var(--fairway);
+  --color-fairway-dark: var(--fairway-dark);
+  --color-sand: var(--sand);
+  --color-sky: var(--sky);
+  --color-accent: var(--accent);
+  --color-card: var(--card);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #14201a;
+    --foreground: #eef3ec;
+    --card: #1c2b23;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  min-height: 100dvh;
+}
+
+/* 50~60대 사용자를 고려해 버튼/글씨를 큼직하게 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  padding: 0.9rem 1.5rem;
+  border-radius: 1rem;
+  transition: transform 0.08s ease, opacity 0.15s ease;
+  touch-action: manipulation;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--fairway);
+  color: white;
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--fairway-dark);
+  border: 2px solid var(--fairway);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 1.25rem;
+  box-shadow: 0 2px 14px rgba(31, 42, 32, 0.08);
+  padding: 1.25rem;
+}
+
+@keyframes golf-draw-bounce {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  35% {
+    transform: scale(1.18) rotate(-8deg) translateY(-10px);
+  }
+  70% {
+    transform: scale(1.05) rotate(6deg) translateY(2px);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.golf-draw-animating {
+  animation: golf-draw-bounce 0.55s ease;
+}
+
+.name-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4.25rem;
+  border-radius: 1rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border: 2px solid var(--sand);
+  background: white;
+  text-align: center;
+  padding: 0.5rem;
+}
