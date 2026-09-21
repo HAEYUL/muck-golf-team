@@ -8,6 +8,7 @@ import {
   listMembers,
   listParticipants,
   listScores,
+  listSuggestions,
 } from "@/lib/queries";
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -15,6 +16,7 @@ import { RoundProgressSteps } from "@/components/RoundProgressSteps";
 import { TEAM_MODE_DESCRIPTION, TEAM_MODE_LABEL, TEAM_THEMES } from "@/lib/types";
 import type { TeamMode } from "@/lib/types";
 import {
+  addSuggestionAction,
   closeRsvpAction,
   createTeamAssignmentAction,
   reopenRsvpAction,
@@ -43,12 +45,13 @@ export default async function RoundDetailPage({
   const round = await getRound(id);
   if (!round) notFound();
 
-  const [members, participants, assignment, scores, result] = await Promise.all([
+  const [members, participants, assignment, scores, result, suggestions] = await Promise.all([
     listMembers(),
     listParticipants(id),
     getLatestTeamAssignment(id),
     listScores(id),
     getRoundResult(id),
+    listSuggestions(id),
   ]);
 
   const memberMap = new Map(members.map((m) => [m.id, m]));
@@ -77,6 +80,36 @@ export default async function RoundDetailPage({
           </p>
         </div>
         <RoundProgressSteps status={round.status} />
+      </section>
+
+      <section className="card flex flex-col gap-3">
+        <h2 className="text-lg font-bold">💬 건의사항</h2>
+        <div className="flex flex-col gap-2">
+          {suggestions.length === 0 && (
+            <p className="text-sm text-foreground/60">아직 등록된 건의사항이 없어요.</p>
+          )}
+          {suggestions.map((s) => (
+            <div key={s.id} className="rounded-lg bg-sand/30 px-3 py-2">
+              <p className="text-sm text-foreground/90">{s.content}</p>
+              <p className="mt-1 text-xs text-foreground/50">
+                {memberMap.get(s.member_id)?.name ?? "?"}
+              </p>
+            </div>
+          ))}
+        </div>
+        <form action={addSuggestionAction} className="flex flex-col gap-2">
+          <input type="hidden" name="round_id" value={round.id} />
+          <textarea
+            name="content"
+            required
+            placeholder="건의사항을 남겨주세요"
+            rows={2}
+            className="rounded-xl border-2 border-sand px-4 py-3 text-base"
+          />
+          <button type="submit" className="btn btn-secondary w-full">
+            건의사항 남기기
+          </button>
+        </form>
       </section>
 
       {round.status === "모집중" && (

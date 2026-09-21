@@ -39,6 +39,8 @@ export interface Member {
   character_url: string | null;
   is_guest: boolean;
   is_admin: boolean;
+  /** 관리자만 사용. "salt:해시" 형태. 없으면 비밀번호 없이 로그인 가능 */
+  password_hash: string | null;
   created_at: string;
 }
 
@@ -87,6 +89,14 @@ export interface RoundScore {
 export interface RoundResult {
   round_id: string;
   photos: string[];
+  created_at: string;
+}
+
+export interface RoundSuggestion {
+  id: string;
+  round_id: string;
+  member_id: string;
+  content: string;
   created_at: string;
 }
 

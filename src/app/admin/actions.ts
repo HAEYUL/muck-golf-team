@@ -4,7 +4,36 @@ import { revalidatePath } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/session";
 import { listMembers } from "@/lib/queries";
+import { hashPassword } from "@/lib/password";
 import type { Gender } from "@/lib/types";
+
+export type AdminPasswordState = { error?: string; success?: string } | null;
+
+/** 로그인한 관리자 본인의 비밀번호를 설정/변경한다 */
+export async function setAdminPasswordAction(
+  _prevState: AdminPasswordState,
+  formData: FormData
+): Promise<AdminPasswordState> {
+  const admin = await requireAdmin();
+  const newPassword = String(formData.get("new_password") ?? "");
+  const confirmPassword = String(formData.get("confirm_password") ?? "");
+
+  if (newPassword.length < 4) {
+    return { error: "비밀번호는 4자 이상으로 설정해주세요." };
+  }
+  if (newPassword !== confirmPassword) {
+    return { error: "비밀번호가 서로 일치하지 않아요." };
+  }
+
+  const { error } = await getSupabaseAdmin()
+    .from("members")
+    .update({ password_hash: hashPassword(newPassword) })
+    .eq("id", admin.id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin");
+  return { success: "비밀번호가 설정됐어요. 다음 로그인부터 비밀번호를 입력해야 해요." };
+}
 
 export async function addGuestAction(formData: FormData) {
   await requireAdmin();

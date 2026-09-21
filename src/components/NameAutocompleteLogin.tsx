@@ -1,18 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
+import type { LoginState } from "@/app/actions";
 
-type MemberOption = { id: string; name: string };
+type MemberOption = { id: string; name: string; is_admin: boolean; has_password: boolean };
 
 export function NameAutocompleteLogin({
   members,
   action,
 }: {
   members: MemberOption[];
-  action: (formData: FormData) => void;
+  action: (prevState: LoginState, formData: FormData) => Promise<LoginState>;
 }) {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<MemberOption | null>(null);
+  const [state, formAction, pending] = useActionState<LoginState, FormData>(action, null);
 
   const suggestions = useMemo(() => {
     if (!query.trim()) return [];
@@ -20,8 +22,10 @@ export function NameAutocompleteLogin({
     return members.filter((m) => m.name.includes(q)).slice(0, 8);
   }, [query, members]);
 
+  const needsPassword = selected?.is_admin && selected.has_password;
+
   return (
-    <form action={action} className="flex flex-col gap-3">
+    <form action={formAction} className="flex flex-col gap-3">
       <input
         type="text"
         inputMode="text"
@@ -59,9 +63,28 @@ export function NameAutocompleteLogin({
         </p>
       )}
 
+      {needsPassword && (
+        <input
+          type="password"
+          name="password"
+          placeholder="관리자 비밀번호"
+          autoComplete="current-password"
+          autoFocus
+          className="w-full rounded-2xl border-2 border-sand bg-white px-5 py-4 text-center text-xl font-bold outline-none focus:border-fairway"
+        />
+      )}
+
+      {state?.error && (
+        <p className="text-center text-sm font-semibold text-danger">{state.error}</p>
+      )}
+
       <input type="hidden" name="memberId" value={selected?.id ?? ""} />
-      <button type="submit" className="btn btn-primary w-full" disabled={!selected}>
-        {selected ? `${selected.name}(으)로 입장하기` : "이름을 선택해주세요"}
+      <button type="submit" className="btn btn-primary w-full" disabled={!selected || pending}>
+        {!selected
+          ? "이름을 선택해주세요"
+          : pending
+            ? "확인 중..."
+            : `${selected.name}(으)로 입장하기`}
       </button>
     </form>
   );

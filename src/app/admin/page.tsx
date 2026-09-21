@@ -5,6 +5,7 @@ import { listMembers, listRounds } from "@/lib/queries";
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeleteRoundButton } from "@/components/DeleteRoundButton";
+import { AdminPasswordForm } from "@/components/AdminPasswordForm";
 import {
   createRoundAction,
   deleteRoundAction,
@@ -219,6 +220,16 @@ export default async function AdminPage() {
               </form>
             ))}
         </div>
+      </section>
+
+      <section className="card flex flex-col gap-3">
+        <h2 className="text-lg font-bold">🔒 내 관리자 비밀번호</h2>
+        <p className="text-sm text-foreground/60">
+          {member.password_hash
+            ? "비밀번호가 설정돼 있어요. 이름 선택 후 로그인 시 확인해요."
+            : "아직 비밀번호가 없어요. 지금은 이름만 선택해도 로그인돼요. 설정하면 다음부터 비밀번호를 물어봐요."}
+        </p>
+        <AdminPasswordForm />
       </section>
     </main>
   );

@@ -341,3 +341,20 @@ export async function uploadRoundPhotosAction(formData: FormData) {
   revalidatePath("/memories");
   redirect(`/rounds/${roundId}/photos`);
 }
+
+/** 라운딩별 건의사항. 로그인한 사람 누구나 쓰고 볼 수 있다 */
+export async function addSuggestionAction(formData: FormData) {
+  const currentMember = await requireMember();
+  const roundId = String(formData.get("round_id") ?? "");
+  const content = String(formData.get("content") ?? "").trim();
+  if (!content) throw new Error("내용을 입력해주세요.");
+
+  const { error } = await getSupabaseAdmin().from("round_suggestions").insert({
+    round_id: roundId,
+    member_id: currentMember.id,
+    content,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/rounds/${roundId}`);
+}

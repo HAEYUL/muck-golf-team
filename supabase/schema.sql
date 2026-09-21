@@ -13,6 +13,8 @@ create table if not exists members (
   character_url text,
   is_guest boolean not null default false,
   is_admin boolean not null default false,
+  -- 관리자만 사용. "salt:해시" 형태로 저장하며 비어있으면 비밀번호 없이 로그인 가능
+  password_hash text,
   created_at timestamptz not null default now()
 );
 
@@ -78,6 +80,16 @@ create table if not exists round_results (
   created_at timestamptz not null default now()
 );
 
+-- 라운딩별 건의사항 (누구나 쓰고 볼 수 있음)
+create table if not exists round_suggestions (
+  id uuid primary key default gen_random_uuid(),
+  round_id uuid not null references rounds(id) on delete cascade,
+  member_id uuid not null references members(id) on delete cascade,
+  content text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_round_suggestions_round on round_suggestions (round_id);
 create index if not exists idx_round_participants_round on round_participants (round_id);
 create index if not exists idx_team_assignments_round on team_assignments (round_id);
 create index if not exists idx_round_scores_round on round_scores (round_id);
@@ -92,3 +104,4 @@ alter table round_participants enable row level security;
 alter table team_assignments enable row level security;
 alter table round_scores enable row level security;
 alter table round_results enable row level security;
+alter table round_suggestions enable row level security;

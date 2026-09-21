@@ -6,6 +6,7 @@ import type {
   RoundParticipant,
   RoundResult,
   RoundScore,
+  RoundSuggestion,
   TeamAssignment,
 } from "./types";
 
@@ -125,6 +126,16 @@ export async function getRoundResult(
     .maybeSingle();
   if (error) throw error;
   return (data as RoundResult | null) ?? null;
+}
+
+export async function listSuggestions(roundId: string): Promise<RoundSuggestion[]> {
+  const { data, error } = await getSupabaseAdmin()
+    .from("round_suggestions")
+    .select("*")
+    .eq("round_id", roundId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as RoundSuggestion[];
 }
 
 /** 멤버별 전체 라운딩 평균 타수. 추억 페이지에서 동타 순위를 가릴 때 사용한다 */
