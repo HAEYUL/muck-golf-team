@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
-import { listMembers, listRounds } from "@/lib/queries";
+import { getMemberAverageScores, listMembers, listRounds } from "@/lib/queries";
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeleteRoundButton } from "@/components/DeleteRoundButton";
@@ -20,8 +20,18 @@ export default async function AdminPage() {
   if (!member) redirect("/");
   if (!member.is_admin) redirect("/");
 
-  const [members, rounds] = await Promise.all([listMembers(), listRounds()]);
+  const [members, rounds, averageByMember] = await Promise.all([
+    listMembers(),
+    listRounds(),
+    getMemberAverageScores(),
+  ]);
   const upcomingRounds = rounds.filter((r) => r.status !== "완료");
+
+  const membersBySkill = [...members].sort((a, b) => {
+    const avgA = averageByMember[a.id] ?? Infinity;
+    const avgB = averageByMember[b.id] ?? Infinity;
+    return avgA - avgB;
+  });
 
   return (
     <main className="flex flex-col gap-6">
@@ -173,22 +183,29 @@ export default async function AdminPage() {
       <section className="card flex flex-col gap-3">
         <h2 className="text-lg font-bold">실력 순위 (skill_rank) 조정</h2>
         <p className="text-sm text-foreground/60">
-          숫자가 작을수록 실력이 높은 멤버예요. 실력 균등 모드에서 사용돼요.
+          숫자가 작을수록 실력이 높은 멤버예요. 실력 균등 모드에서 사용돼요. 개인 평균
+          타수가 좋은(낮은) 순으로 정렬했어요.
         </p>
         <form action={updateSkillRanksAction} className="flex flex-col gap-2">
-          {members.map((m) => (
-            <div key={m.id} className="flex items-center justify-between gap-3">
-              <span className="font-semibold">
-                {m.name} {m.is_guest && <span className="text-xs text-foreground/50">(게스트)</span>}
-              </span>
-              <input
-                type="number"
-                name={`skill_${m.id}`}
-                defaultValue={m.skill_rank}
-                className="w-20 rounded-lg border-2 border-sand px-2 py-2 text-center"
-              />
-            </div>
-          ))}
+          {membersBySkill.map((m) => {
+            const avg = averageByMember[m.id];
+            return (
+              <div key={m.id} className="flex items-center justify-between gap-3">
+                <span className="font-semibold">
+                  {m.name} {m.is_guest && <span className="text-xs text-foreground/50">(게스트)</span>}
+                  <span className="ml-1 text-xs font-normal text-foreground/50">
+                    {avg ? `평균 ${avg.toFixed(1)}타` : "기록 없음"}
+                  </span>
+                </span>
+                <input
+                  type="number"
+                  name={`skill_${m.id}`}
+                  defaultValue={m.skill_rank}
+                  className="w-20 rounded-lg border-2 border-sand px-2 py-2 text-center"
+                />
+              </div>
+            );
+          })}
           <button type="submit" className="btn btn-secondary mt-2 w-full">
             순위 저장하기
           </button>
