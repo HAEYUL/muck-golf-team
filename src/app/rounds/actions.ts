@@ -266,10 +266,12 @@ export async function saveManualTeamsAction(formData: FormData) {
   });
   if (error) throw new Error(error.message);
 
-  await getSupabaseAdmin()
-    .from("rounds")
-    .update({ status: "확정" })
-    .eq("id", roundId);
+  // 완료된 라운딩을 사후 수정하는 경우 상태를 "확정"으로 되돌리지 않는다
+  // (스코어/사진 화면이 그대로 유지되도록).
+  const round = await getRound(roundId);
+  if (round && round.status !== "완료") {
+    await getSupabaseAdmin().from("rounds").update({ status: "확정" }).eq("id", roundId);
+  }
 
   revalidatePath("/");
   revalidatePath(`/rounds/${roundId}`);

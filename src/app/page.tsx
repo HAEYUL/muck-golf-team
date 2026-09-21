@@ -127,6 +127,7 @@ export default async function HomePage() {
             scores={scores}
             averageByMember={averageByMember}
             getName={getName}
+            assignedMemberIds={assignment ? Object.values(assignment.teams).flat() : []}
           />
         </section>
       )}

@@ -310,9 +310,11 @@ export default async function RoundDetailPage({
           <Link href={`/rounds/${round.id}/draw`} className="btn btn-secondary w-full">
             🎱 뽑기 화면 다시 보기
           </Link>
-          {member.is_admin && round.status !== "완료" && (
+          {member.is_admin && (
             <details className="rounded-xl border-2 border-sand p-3">
-              <summary className="cursor-pointer font-bold">🔁 다시 팀짜기</summary>
+              <summary className="cursor-pointer font-bold">
+                🔁 {round.status === "완료" ? "지난 팀 편성 수정하기" : "다시 팀짜기"}
+              </summary>
               <form action={createTeamAssignmentAction} className="mt-3 flex flex-col gap-2">
                 <input type="hidden" name="round_id" value={round.id} />
                 {MODES.map((mode, idx) => (
@@ -348,7 +350,17 @@ export default async function RoundDetailPage({
       {round.status === "완료" && (
         <section className="card flex flex-col gap-3">
           <h2 className="text-lg font-bold">스코어</h2>
-          <ScoreRankedList scores={scores} averageByMember={averageByMember} getName={getName} />
+          <ScoreRankedList
+            scores={scores}
+            averageByMember={averageByMember}
+            getName={getName}
+            assignedMemberIds={assignment ? Object.values(assignment.teams).flat() : []}
+          />
+          {member.is_admin && (
+            <Link href={`/rounds/${round.id}/score`} className="btn btn-secondary w-full">
+              📝 스코어 수정하기
+            </Link>
+          )}
           <Link href={`/rounds/${round.id}/photos`} className="btn btn-secondary w-full">
             📸 추억사진 {result && result.photos.length > 0 ? `보기 (${result.photos.length})` : "올리기"}
           </Link>
