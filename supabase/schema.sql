@@ -89,6 +89,17 @@ create table if not exists round_suggestions (
   created_at timestamptz not null default now()
 );
 
+-- 조편성 게임: 참가자가 본인 이름을 눌러 "게임에 참가"한 기록.
+-- 특정 team_assignment(뽑기 회차)에 대해 전원이 눌렀는지로 자동 확정 여부를 판단한다.
+create table if not exists team_reveals (
+  id uuid primary key default gen_random_uuid(),
+  team_assignment_id uuid not null references team_assignments(id) on delete cascade,
+  member_id uuid not null references members(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (team_assignment_id, member_id)
+);
+
+create index if not exists idx_team_reveals_assignment on team_reveals (team_assignment_id);
 create index if not exists idx_round_suggestions_round on round_suggestions (round_id);
 create index if not exists idx_round_participants_round on round_participants (round_id);
 create index if not exists idx_team_assignments_round on team_assignments (round_id);
@@ -105,3 +116,4 @@ alter table team_assignments enable row level security;
 alter table round_scores enable row level security;
 alter table round_results enable row level security;
 alter table round_suggestions enable row level security;
+alter table team_reveals enable row level security;

@@ -3,22 +3,27 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import {
   getLatestTeamAssignment,
+  getMemberAverageScores,
   getRound,
   getRoundResult,
   listMembers,
   listParticipants,
   listScores,
   listSuggestions,
+  listTeamReveals,
 } from "@/lib/queries";
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RoundProgressSteps } from "@/components/RoundProgressSteps";
-import { ROUND_STATUS_STEPS, TEAM_MODE_DESCRIPTION, TEAM_MODE_LABEL, TEAM_THEMES } from "@/lib/types";
+import { TeamResultsList } from "@/components/TeamResultsList";
+import { ScoreRankedList } from "@/components/ScoreRankedList";
+import { ROUND_STATUS_STEPS, TEAM_MODE_DESCRIPTION, TEAM_MODE_LABEL } from "@/lib/types";
 import type { TeamMode } from "@/lib/types";
 import {
   addSuggestionAction,
   closeRsvpAction,
   createTeamAssignmentAction,
+  forceConfirmTeamsAction,
   reopenRsvpAction,
   revertRoundStatusAction,
   rsvpAction,
@@ -46,21 +51,36 @@ export default async function RoundDetailPage({
   const round = await getRound(id);
   if (!round) notFound();
 
-  const [members, participants, assignment, scores, result, suggestions] = await Promise.all([
-    listMembers(),
-    listParticipants(id),
-    getLatestTeamAssignment(id),
-    listScores(id),
-    getRoundResult(id),
-    listSuggestions(id),
-  ]);
+  const [members, participants, assignment, scores, result, suggestions, averageByMember] =
+    await Promise.all([
+      listMembers(),
+      listParticipants(id),
+      getLatestTeamAssignment(id),
+      listScores(id),
+      getRoundResult(id),
+      listSuggestions(id),
+      getMemberAverageScores(),
+    ]);
 
   const memberMap = new Map(members.map((m) => [m.id, m]));
+  const getName = (memberId: string) => memberMap.get(memberId)?.name ?? "?";
   const participantMap = new Map(participants.map((p) => [p.member_id, p]));
   const attendingMembers = members.filter(
     (m) => participantMap.get(m.id)?.attending
   );
   const myEntry = participantMap.get(member.id);
+
+  const reveals =
+    round.status === "조편성중" && assignment
+      ? await listTeamReveals(assignment.id)
+      : [];
+  const revealedSet = new Set(reveals.map((r) => r.member_id));
+  const waitingNames = assignment
+    ? Object.values(assignment.teams)
+        .flat()
+        .filter((mid) => !revealedSet.has(mid))
+        .map(getName)
+    : [];
 
   return (
     <main className="flex flex-col gap-6">
@@ -204,9 +224,38 @@ export default async function RoundDetailPage({
       {round.status === "조편성중" && (
         <section className="card flex flex-col gap-3">
           <h2 className="text-lg font-bold">
-            팀 편성 대기중 ({attendingMembers.length}명 참가 확정)
+            {assignment
+              ? "조편성 게임 진행중"
+              : `팀 편성 대기중 (${attendingMembers.length}명 참가 확정)`}
           </h2>
-          {member.is_admin ? (
+
+          {assignment ? (
+            <>
+              <p className="text-sm text-foreground/70">
+                게임방식: {TEAM_MODE_LABEL[assignment.mode]}
+              </p>
+              <p className="text-sm font-semibold text-foreground/70">
+                {Object.values(assignment.teams).flat().length - waitingNames.length} /{" "}
+                {Object.values(assignment.teams).flat().length}명 완료
+                {waitingNames.length > 0 && (
+                  <span className="block font-normal text-foreground/50">
+                    대기중: {waitingNames.join(", ")}
+                  </span>
+                )}
+              </p>
+              <Link href="/" className="btn btn-primary w-full">
+                🎲 홈 화면에서 게임 참여하기
+              </Link>
+              {member.is_admin && (
+                <form action={forceConfirmTeamsAction}>
+                  <input type="hidden" name="round_id" value={round.id} />
+                  <button type="submit" className="btn btn-secondary w-full">
+                    모두 완료된 것으로 처리하고 확정하기
+                  </button>
+                </form>
+              )}
+            </>
+          ) : member.is_admin ? (
             <>
               <form action={createTeamAssignmentAction} className="flex flex-col gap-3">
                 <input type="hidden" name="round_id" value={round.id} />
@@ -237,7 +286,8 @@ export default async function RoundDetailPage({
           ) : (
             <p className="text-foreground/70">관리자가 팀을 편성하고 있어요. 잠시만 기다려주세요!</p>
           )}
-          {member.is_admin && (
+
+          {member.is_admin && !assignment && (
             <form action={reopenRsvpAction}>
               <input type="hidden" name="round_id" value={round.id} />
               <button type="submit" className="btn btn-secondary w-full">
@@ -256,25 +306,7 @@ export default async function RoundDetailPage({
               {TEAM_MODE_LABEL[assignment.mode]} · {assignment.attempt_no}차
             </span>
           </div>
-          <div className="flex flex-col gap-3">
-            {Object.entries(assignment.teams).map(([teamNo, ids]) => {
-              const theme = TEAM_THEMES[Number(teamNo) - 1] ?? TEAM_THEMES[0];
-              return (
-                <div
-                  key={teamNo}
-                  className="rounded-xl p-3"
-                  style={{ background: `${theme.color}1a`, border: `2px solid ${theme.color}` }}
-                >
-                  <p className="font-extrabold" style={{ color: theme.color }}>
-                    {theme.name} ({ids.length}명)
-                  </p>
-                  <p className="mt-1 text-foreground/80">
-                    {ids.map((mid) => memberMap.get(mid)?.name ?? "?").join(", ")}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+          <TeamResultsList teams={assignment.teams} getName={getName} />
           <Link href={`/rounds/${round.id}/draw`} className="btn btn-secondary w-full">
             🎱 뽑기 화면 다시 보기
           </Link>
@@ -316,16 +348,7 @@ export default async function RoundDetailPage({
       {round.status === "완료" && (
         <section className="card flex flex-col gap-3">
           <h2 className="text-lg font-bold">스코어</h2>
-          <div className="flex flex-col gap-1">
-            {scores
-              .sort((a, b) => a.score - b.score)
-              .map((s) => (
-                <div key={s.id} className="flex items-center justify-between">
-                  <span>{memberMap.get(s.member_id)?.name ?? "?"}</span>
-                  <span className="font-bold">{s.score}타</span>
-                </div>
-              ))}
-          </div>
+          <ScoreRankedList scores={scores} averageByMember={averageByMember} getName={getName} />
           <Link href={`/rounds/${round.id}/photos`} className="btn btn-secondary w-full">
             📸 추억사진 {result && result.photos.length > 0 ? `보기 (${result.photos.length})` : "올리기"}
           </Link>

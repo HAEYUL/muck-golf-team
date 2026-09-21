@@ -1,0 +1,103 @@
+import { TEAM_MODE_LABEL, TEAM_THEMES } from "@/lib/types";
+import type { TeamMode } from "@/lib/types";
+
+type Participant = { id: string; name: string };
+
+export function TeamRevealSection({
+  roundId,
+  participants,
+  mode,
+  teamByMember,
+  revealedIds,
+  currentMemberId,
+  revealAction,
+}: {
+  roundId: string;
+  participants: Participant[];
+  mode: TeamMode | null;
+  teamByMember: Record<string, number>;
+  revealedIds: string[];
+  currentMemberId: string;
+  revealAction: (formData: FormData) => void;
+}) {
+  const revealedSet = new Set(revealedIds);
+  const waitingNames = participants
+    .filter((p) => !revealedSet.has(p.id))
+    .map((p) => p.name);
+
+  return (
+    <section className="card flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-lg font-bold">참가자 명단</h2>
+        {mode && (
+          <span className="text-sm font-semibold text-foreground/60">
+            게임방식: {TEAM_MODE_LABEL[mode]}
+          </span>
+        )}
+      </div>
+
+      {mode && (
+        <p className="text-center text-sm text-foreground/70">
+          조편성을 위해 참가자는 본인의 이름을 눌러 게임에 참가해 주세요.
+          <br />
+          모든 참가자의 게임이 끝나면 팀 확정이 완료됩니다.
+        </p>
+      )}
+
+      <div className="grid grid-cols-2 gap-2">
+        {participants.map((p) => {
+          const isRevealed = revealedSet.has(p.id);
+          const isMe = p.id === currentMemberId;
+          const teamNo = teamByMember[p.id];
+          const theme = teamNo ? TEAM_THEMES[teamNo - 1] ?? TEAM_THEMES[0] : null;
+
+          if (isRevealed && theme) {
+            return (
+              <div
+                key={p.id}
+                className="name-box flex-col gap-1"
+                style={{ background: theme.color, borderColor: theme.color, color: "white" }}
+              >
+                <span>{p.name}</span>
+                <span className="text-xs font-semibold opacity-90">{theme.name}</span>
+              </div>
+            );
+          }
+
+          if (mode && isMe) {
+            return (
+              <form key={p.id} action={revealAction}>
+                <input type="hidden" name="round_id" value={roundId} />
+                <button
+                  type="submit"
+                  className="name-box w-full"
+                  style={{ borderColor: "var(--fairway)", background: "rgba(47,122,79,0.1)" }}
+                >
+                  {p.name} 눌러보기!
+                </button>
+              </form>
+            );
+          }
+
+          return (
+            <div key={p.id} className="name-box opacity-60">
+              {p.name}
+            </div>
+          );
+        })}
+      </div>
+
+      {mode && (
+        <p className="text-center text-sm font-semibold text-foreground/70">
+          {participants.length - waitingNames.length} / {participants.length}명 완료
+          {waitingNames.length > 0 && (
+            <>
+              <br />
+              <span className="text-foreground/50">대기중: {waitingNames.join(", ")}</span>
+            </>
+          )}
+        </p>
+      )}
+    </section>
+  );
+}

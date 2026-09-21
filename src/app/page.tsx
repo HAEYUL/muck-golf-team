@@ -3,13 +3,19 @@ import { getCurrentMember } from "@/lib/session";
 import {
   getActiveRound,
   getLatestTeamAssignment,
+  getMemberAverageScores,
   listMembers,
   listParticipants,
+  listScores,
+  listTeamReveals,
 } from "@/lib/queries";
 import { loginAction, logoutAction } from "./actions";
+import { revealTeamAction } from "./rounds/actions";
 import { NameAutocompleteLogin } from "@/components/NameAutocompleteLogin";
-import { MemberLineup } from "@/components/MemberLineup";
 import { RoundCard } from "@/components/RoundCard";
+import { TeamRevealSection } from "@/components/TeamRevealSection";
+import { TeamResultsList } from "@/components/TeamResultsList";
+import { ScoreRankedList } from "@/components/ScoreRankedList";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +46,9 @@ export default async function HomePage() {
     );
   }
 
+  const memberMap = new Map(members.map((m) => [m.id, m]));
+  const getName = (id: string) => memberMap.get(id)?.name ?? "?";
+
   const activeRound = await getActiveRound();
   const participants = activeRound
     ? await listParticipants(activeRound.id)
@@ -47,6 +56,27 @@ export default async function HomePage() {
   const assignment = activeRound
     ? await getLatestTeamAssignment(activeRound.id)
     : null;
+
+  const attendingParticipants = participants
+    .filter((p) => p.attending)
+    .map((p) => ({ id: p.member_id, name: getName(p.member_id) }));
+
+  const teamByMember: Record<string, number> = {};
+  if (assignment) {
+    Object.entries(assignment.teams).forEach(([teamNo, ids]) => {
+      ids.forEach((id) => (teamByMember[id] = Number(teamNo)));
+    });
+  }
+
+  const reveals =
+    activeRound?.status === "조편성중" && assignment
+      ? await listTeamReveals(assignment.id)
+      : [];
+
+  const scores =
+    activeRound?.status === "완료" ? await listScores(activeRound.id) : [];
+  const averageByMember =
+    activeRound?.status === "완료" ? await getMemberAverageScores() : {};
 
   return (
     <main className="flex flex-col gap-6">
@@ -67,15 +97,39 @@ export default async function HomePage() {
       <RoundCard
         round={activeRound}
         participants={participants}
-        assignment={assignment}
         currentMemberId={member.id}
         isAdmin={member.is_admin}
       />
 
-      <section>
-        <h2 className="mb-2 text-lg font-bold">멤버 라인업</h2>
-        <MemberLineup members={members} currentMemberId={member.id} />
-      </section>
+      {activeRound?.status === "조편성중" && (
+        <TeamRevealSection
+          roundId={activeRound.id}
+          participants={attendingParticipants}
+          mode={assignment?.mode ?? null}
+          teamByMember={teamByMember}
+          revealedIds={reveals.map((r) => r.member_id)}
+          currentMemberId={member.id}
+          revealAction={revealTeamAction}
+        />
+      )}
+
+      {activeRound?.status === "확정" && assignment && (
+        <section className="card flex flex-col gap-3">
+          <h2 className="text-lg font-bold">팀 편성 결과</h2>
+          <TeamResultsList teams={assignment.teams} getName={getName} />
+        </section>
+      )}
+
+      {activeRound?.status === "완료" && (
+        <section className="card flex flex-col gap-3">
+          <h2 className="text-lg font-bold">스코어</h2>
+          <ScoreRankedList
+            scores={scores}
+            averageByMember={averageByMember}
+            getName={getName}
+          />
+        </section>
+      )}
 
       <nav className="grid grid-cols-2 gap-3">
         <Link href="/memories" className="btn btn-secondary">

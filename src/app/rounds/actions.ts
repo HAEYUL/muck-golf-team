@@ -173,15 +173,61 @@ export async function createTeamAssignmentAction(formData: FormData) {
   });
   if (error) throw new Error(error.message);
 
-  await getSupabaseAdmin()
-    .from("rounds")
-    .update({ status: "확정" })
-    .eq("id", roundId);
-
+  // 상태는 그대로 둔다: 처음 시작이면 "조편성중"에 남아 참가자들이 각자
+  // 홈 화면에서 본인 이름을 눌러 게임에 참가해야 "확정"으로 넘어간다.
+  // 이미 "확정" 상태에서 다시 뽑은 경우(재편성)에는 그대로 확정 상태 유지.
   revalidatePath("/");
   revalidatePath(`/rounds/${roundId}`);
   revalidatePath(`/rounds/${roundId}/draw`);
-  redirect(`/rounds/${roundId}/draw`);
+  redirect(`/rounds/${roundId}`);
+}
+
+/** 조편성 게임: 참가자 본인이 홈 화면에서 자기 이름을 눌러 게임에 참가한다 */
+export async function revealTeamAction(formData: FormData) {
+  const currentMember = await requireMember();
+  const roundId = String(formData.get("round_id") ?? "");
+
+  const assignment = (await listTeamAssignments(roundId)).at(-1);
+  if (!assignment) throw new Error("아직 팀 편성이 시작되지 않았어요.");
+
+  const assignedMemberIds = Object.values(assignment.teams).flat();
+  if (!assignedMemberIds.includes(currentMember.id)) {
+    throw new Error("이번 라운딩 참가자만 게임에 참여할 수 있어요.");
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase.from("team_reveals").upsert(
+    { team_assignment_id: assignment.id, member_id: currentMember.id },
+    { onConflict: "team_assignment_id,member_id", ignoreDuplicates: true }
+  );
+  if (error) throw new Error(error.message);
+
+  const { count, error: countError } = await supabase
+    .from("team_reveals")
+    .select("*", { count: "exact", head: true })
+    .eq("team_assignment_id", assignment.id);
+  if (countError) throw new Error(countError.message);
+
+  if ((count ?? 0) >= assignedMemberIds.length) {
+    await supabase.from("rounds").update({ status: "확정" }).eq("id", roundId);
+  }
+
+  revalidatePath("/");
+  revalidatePath(`/rounds/${roundId}`);
+}
+
+/** 관리자가 아직 다 안 누른 사람이 있어도 강제로 확정 처리한다 */
+export async function forceConfirmTeamsAction(formData: FormData) {
+  await requireAdmin();
+  const roundId = String(formData.get("round_id") ?? "");
+  const { error } = await getSupabaseAdmin()
+    .from("rounds")
+    .update({ status: "확정" })
+    .eq("id", roundId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+  revalidatePath(`/rounds/${roundId}`);
 }
 
 /** 관리자가 참가자별 팀 번호를 직접 지정해서 팀을 편성/수정한다 */

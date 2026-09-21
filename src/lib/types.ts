@@ -100,6 +100,13 @@ export interface RoundSuggestion {
   created_at: string;
 }
 
+export interface TeamReveal {
+  id: string;
+  team_assignment_id: string;
+  member_id: string;
+  created_at: string;
+}
+
 export const TEAM_THEMES = [
   { no: 1, name: "1조", color: "#2f7a4f", ball: "#eab308" },
   { no: 2, name: "2조", color: "#1d5c9c", ball: "#f8fafc" },

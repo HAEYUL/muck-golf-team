@@ -8,6 +8,7 @@ import type {
   RoundScore,
   RoundSuggestion,
   TeamAssignment,
+  TeamReveal,
 } from "./types";
 
 export async function listMembers(): Promise<Member[]> {
@@ -105,6 +106,17 @@ export async function listTeamAssignments(
     .order("attempt_no", { ascending: true });
   if (error) throw error;
   return (data ?? []) as TeamAssignment[];
+}
+
+export async function listTeamReveals(
+  teamAssignmentId: string
+): Promise<TeamReveal[]> {
+  const { data, error } = await getSupabaseAdmin()
+    .from("team_reveals")
+    .select("*")
+    .eq("team_assignment_id", teamAssignmentId);
+  if (error) throw error;
+  return (data ?? []) as TeamReveal[];
 }
 
 export async function listScores(roundId: string): Promise<RoundScore[]> {
