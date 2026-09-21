@@ -147,6 +147,28 @@ export async function getRoundResult(
   return (data as RoundResult | null) ?? null;
 }
 
+/** 멤버별 전체 라운딩 평균 타수. 추억 페이지에서 동타 순위를 가릴 때 사용한다 */
+export async function getMemberAverageScores(): Promise<Record<string, number>> {
+  const { data, error } = await getSupabaseAdmin()
+    .from("round_scores")
+    .select("member_id, score");
+  if (error) throw error;
+
+  const totals = new Map<string, { sum: number; count: number }>();
+  for (const row of data ?? []) {
+    const entry = totals.get(row.member_id) ?? { sum: 0, count: 0 };
+    entry.sum += row.score;
+    entry.count += 1;
+    totals.set(row.member_id, entry);
+  }
+
+  const averages: Record<string, number> = {};
+  for (const [memberId, { sum, count }] of totals) {
+    averages[memberId] = sum / count;
+  }
+  return averages;
+}
+
 export async function listMemberScoreHistory(memberId: string) {
   const { data, error } = await getSupabaseAdmin()
     .from("round_scores")

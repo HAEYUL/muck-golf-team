@@ -3,7 +3,8 @@ const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 export function formatDate(dateStr: string): string {
   const d = new Date(`${dateStr}T00:00:00`);
   if (Number.isNaN(d.getTime())) return dateStr;
-  return `${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAYS[d.getDay()]})`;
+  const yy = String(d.getFullYear() % 100).padStart(2, "0");
+  return `${yy}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAYS[d.getDay()]})`;
 }
 
 export function formatTime(timeStr: string): string {

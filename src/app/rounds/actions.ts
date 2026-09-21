@@ -12,6 +12,52 @@ import {
   listTeamAssignments,
 } from "@/lib/queries";
 import type { TeamMode } from "@/lib/types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/** "photos" 필드로 넘어온 파일들을 Storage에 올리고 round_results.photos에 이어붙인다 */
+async function uploadPhotosToRound(
+  supabase: SupabaseClient,
+  roundId: string,
+  formData: FormData
+) {
+  const photoFiles = formData
+    .getAll("photos")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+  if (photoFiles.length === 0) return;
+
+  const bucket = process.env.SUPABASE_PHOTO_BUCKET || "round-photos";
+  const photoUrls: string[] = [];
+
+  for (const file of photoFiles) {
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${roundId}/${crypto.randomUUID()}.${ext}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(path, buffer, {
+        contentType: file.type || "image/jpeg",
+        upsert: false,
+      });
+    if (uploadError) {
+      throw new Error(`사진 업로드 실패: ${uploadError.message}`);
+    }
+    const { data: publicUrl } = supabase.storage.from(bucket).getPublicUrl(path);
+    photoUrls.push(publicUrl.publicUrl);
+  }
+
+  const { data: existingResult } = await supabase
+    .from("round_results")
+    .select("photos")
+    .eq("round_id", roundId)
+    .maybeSingle();
+
+  const mergedPhotos = [...(existingResult?.photos ?? []), ...photoUrls];
+
+  const { error: resultError } = await supabase
+    .from("round_results")
+    .upsert({ round_id: roundId, photos: mergedPhotos }, { onConflict: "round_id" });
+  if (resultError) throw new Error(resultError.message);
+}
 
 export async function createRoundAction(formData: FormData) {
   await requireAdmin();
@@ -187,41 +233,7 @@ export async function submitScoresAction(formData: FormData) {
     .upsert(scoreRows, { onConflict: "round_id,member_id" });
   if (scoreError) throw new Error(scoreError.message);
 
-  const photoFiles = formData
-    .getAll("photos")
-    .filter((f): f is File => f instanceof File && f.size > 0);
-  const photoUrls: string[] = [];
-  const bucket = process.env.SUPABASE_PHOTO_BUCKET || "round-photos";
-
-  for (const file of photoFiles) {
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${roundId}/${crypto.randomUUID()}.${ext}`;
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(path, buffer, {
-        contentType: file.type || "image/jpeg",
-        upsert: false,
-      });
-    if (uploadError) {
-      throw new Error(`사진 업로드 실패: ${uploadError.message}`);
-    }
-    const { data: publicUrl } = supabase.storage.from(bucket).getPublicUrl(path);
-    photoUrls.push(publicUrl.publicUrl);
-  }
-
-  const { data: existingResult } = await supabase
-    .from("round_results")
-    .select("photos")
-    .eq("round_id", roundId)
-    .maybeSingle();
-
-  const mergedPhotos = [...(existingResult?.photos ?? []), ...photoUrls];
-
-  const { error: resultError } = await supabase
-    .from("round_results")
-    .upsert({ round_id: roundId, photos: mergedPhotos }, { onConflict: "round_id" });
-  if (resultError) throw new Error(resultError.message);
+  await uploadPhotosToRound(supabase, roundId, formData);
 
   const { error: statusError } = await supabase
     .from("rounds")
@@ -233,4 +245,20 @@ export async function submitScoresAction(formData: FormData) {
   revalidatePath(`/rounds/${roundId}`);
   revalidatePath("/memories");
   redirect(`/rounds/${roundId}`);
+}
+
+/** 스코어 입력과 무관하게, 로그인한 사람 누구나 라운딩 사진을 올릴 수 있는 액션 */
+export async function uploadRoundPhotosAction(formData: FormData) {
+  await requireMember();
+  const roundId = String(formData.get("round_id") ?? "");
+  const round = await getRound(roundId);
+  if (!round) throw new Error("라운딩을 찾을 수 없어요.");
+
+  const supabase = getSupabaseAdmin();
+  await uploadPhotosToRound(supabase, roundId, formData);
+
+  revalidatePath(`/rounds/${roundId}`);
+  revalidatePath(`/rounds/${roundId}/photos`);
+  revalidatePath("/memories");
+  redirect(`/rounds/${roundId}/photos`);
 }
