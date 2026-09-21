@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import { listMembers, listRounds } from "@/lib/queries";
-import { formatDate, formatTime } from "@/lib/format";
+import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { createRoundAction } from "@/app/rounds/actions";
 import { addGuestAction, toggleAdminAction, updateSkillRanksAction } from "./actions";
@@ -52,8 +52,19 @@ export default async function AdminPage() {
             <input
               type="text"
               name="golf_course"
-              placeholder="예: 태화CC"
+              placeholder="예: 뉴스프링빌CC"
               required
+              className="rounded-xl border-2 border-sand px-4 py-3 text-lg"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-semibold text-foreground/70">
+              코스명 (선택)
+            </span>
+            <input
+              type="text"
+              name="course"
+              placeholder="예: 올림프스코스 (없으면 비워두세요)"
               className="rounded-xl border-2 border-sand px-4 py-3 text-lg"
             />
           </label>
@@ -76,7 +87,7 @@ export default async function AdminPage() {
               className="flex items-center justify-between rounded-xl border-2 border-sand px-4 py-3"
             >
               <div>
-                <p className="font-bold">{r.golf_course}</p>
+                <p className="font-bold">{formatCourseLabel(r)}</p>
                 <p className="text-sm text-foreground/60">
                   {formatDate(r.date)} · {formatTime(r.time)}
                 </p>

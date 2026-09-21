@@ -14,3 +14,8 @@ export function formatTime(timeStr: string): string {
   const h12 = h % 12 === 0 ? 12 : h % 12;
   return `${period} ${h12}시${mStr && mStr !== "00" ? ` ${mStr}분` : ""}`;
 }
+
+/** "태화CC" + "올림프스코스" -> "태화CC · 올림프스코스" (코스명이 없으면 골프장명만) */
+export function formatCourseLabel(round: { golf_course: string; course: string }): string {
+  return round.course ? `${round.golf_course} · ${round.course}` : round.golf_course;
+}

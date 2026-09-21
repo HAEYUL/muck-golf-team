@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import { listMemberScoreHistory } from "@/lib/queries";
-import { formatDate } from "@/lib/format";
+import { formatCourseLabel, formatDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +60,7 @@ export default async function MePage() {
             className="card flex items-center justify-between"
           >
             <div>
-              <p className="font-bold">{h.rounds.golf_course}</p>
+              <p className="font-bold">{formatCourseLabel(h.rounds)}</p>
               <p className="text-sm text-foreground/60">{formatDate(h.rounds.date)}</p>
             </div>
             <p className="text-xl font-extrabold text-fairway-dark">{h.score}타</p>

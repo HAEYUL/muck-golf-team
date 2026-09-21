@@ -18,13 +18,14 @@ export async function createRoundAction(formData: FormData) {
   const date = String(formData.get("date") ?? "");
   const time = String(formData.get("time") ?? "");
   const golfCourse = String(formData.get("golf_course") ?? "").trim();
+  const course = String(formData.get("course") ?? "").trim();
   if (!date || !time || !golfCourse) {
     throw new Error("날짜, 시간, 골프장명을 모두 입력해주세요.");
   }
 
   const { data, error } = await getSupabaseAdmin()
     .from("rounds")
-    .insert({ date, time, golf_course: golfCourse, status: "모집중" })
+    .insert({ date, time, golf_course: golfCourse, course, status: "모집중" })
     .select("id")
     .single();
   if (error) throw new Error(error.message);

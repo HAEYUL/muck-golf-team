@@ -8,6 +8,7 @@ import {
   listScores,
 } from "@/lib/queries";
 import { TEAM_THEMES } from "@/lib/types";
+import { formatCourseLabel } from "@/lib/format";
 import { submitScoresAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +42,7 @@ export default async function ScorePage({
 
       <div>
         <h1 className="text-2xl font-extrabold text-fairway-dark">스코어보드 입력</h1>
-        <p className="text-foreground/70">{round.golf_course}</p>
+        <p className="text-foreground/70">{formatCourseLabel(round)}</p>
       </div>
 
       <form action={submitScoresAction} className="flex flex-col gap-4">

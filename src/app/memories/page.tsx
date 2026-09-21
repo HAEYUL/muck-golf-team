@@ -8,7 +8,7 @@ import {
   listMembers,
   listScores,
 } from "@/lib/queries";
-import { formatDate } from "@/lib/format";
+import { formatCourseLabel, formatDate } from "@/lib/format";
 import { TEAM_THEMES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +57,7 @@ export default async function MemoriesPage() {
             >
               <div className="flex items-center justify-between">
                 <p className="text-lg font-extrabold text-fairway-dark">
-                  {round.golf_course}
+                  {formatCourseLabel(round)}
                 </p>
                 <span className="text-sm text-foreground/60">{formatDate(round.date)}</span>
               </div>

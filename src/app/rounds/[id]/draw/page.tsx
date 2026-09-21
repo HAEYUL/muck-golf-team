@@ -4,6 +4,7 @@ import { getCurrentMember } from "@/lib/session";
 import { getLatestTeamAssignment, getRound, listMembers } from "@/lib/queries";
 import { TeamDrawGame } from "@/components/TeamDrawGame";
 import { TEAM_MODE_LABEL } from "@/lib/types";
+import { formatCourseLabel } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export default async function TeamDrawPage({
 
       <div className="text-center">
         <h1 className="text-2xl font-extrabold text-fairway-dark">
-          {round.golf_course} 팀 뽑기
+          {formatCourseLabel(round)} 팀 뽑기
         </h1>
       </div>
 

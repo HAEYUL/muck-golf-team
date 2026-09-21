@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Round, RoundParticipant, TeamAssignment } from "@/lib/types";
-import { formatDate, formatTime } from "@/lib/format";
+import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "./StatusBadge";
 import { rsvpAction, closeRsvpAction } from "@/app/rounds/actions";
 
@@ -44,7 +44,7 @@ export function RoundCard({
 
       <div>
         <p className="text-xl font-extrabold text-fairway-dark">
-          {round.golf_course}
+          {formatCourseLabel(round)}
         </p>
         <p className="text-foreground/70">
           {formatDate(round.date)} · {formatTime(round.time)}

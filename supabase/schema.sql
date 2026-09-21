@@ -22,6 +22,8 @@ create table if not exists rounds (
   date date not null,
   time time not null,
   golf_course text not null,
+  -- 같은 골프장 안의 코스명 (예: 올림프스코스). 코스 구분이 없으면 빈 문자열('')
+  course text not null default '',
   status text not null default '모집중'
     check (status in ('모집중', '마감', '팀확정', '진행중', '완료')),
   rsvp_deadline timestamptz,

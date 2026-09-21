@@ -9,7 +9,7 @@ import {
   listParticipants,
   listScores,
 } from "@/lib/queries";
-import { formatDate, formatTime } from "@/lib/format";
+import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TEAM_MODE_DESCRIPTION, TEAM_MODE_LABEL, TEAM_THEMES } from "@/lib/types";
 import type { TeamMode } from "@/lib/types";
@@ -69,7 +69,7 @@ export default async function RoundDetailPage({
 
       <section className="card flex flex-col gap-1">
         <h1 className="text-2xl font-extrabold text-fairway-dark">
-          {round.golf_course}
+          {formatCourseLabel(round)}
         </h1>
         <p className="text-foreground/70">
           {formatDate(round.date)} · {formatTime(round.time)}

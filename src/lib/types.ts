@@ -7,7 +7,8 @@ export type TeamMode =
   | "couples_together"
   | "couples_split"
   | "gender_balance"
-  | "skill_balance";
+  | "skill_balance"
+  | "manual";
 
 export const TEAM_MODE_LABEL: Record<TeamMode, string> = {
   random: "완전 랜덤",
@@ -15,6 +16,7 @@ export const TEAM_MODE_LABEL: Record<TeamMode, string> = {
   couples_split: "부부 갈라놓기",
   gender_balance: "남녀 균등",
   skill_balance: "실력 균등",
+  manual: "수동 입력",
 };
 
 export const TEAM_MODE_DESCRIPTION: Record<TeamMode, string> = {
@@ -23,6 +25,7 @@ export const TEAM_MODE_DESCRIPTION: Record<TeamMode, string> = {
   couples_split: "부부(커플)는 항상 다른 팀으로 배정해요.",
   gender_balance: "각 팀의 남녀 비율을 최대한 균등하게 배분해요.",
   skill_balance: "실력 순위가 각 팀에 고르게 섞이도록 배분해요.",
+  manual: "관리자가 팀 명단을 직접 입력했어요.",
 };
 
 export interface Member {
@@ -42,6 +45,8 @@ export interface Round {
   date: string; // YYYY-MM-DD
   time: string; // HH:mm
   golf_course: string;
+  /** 같은 골프장 안의 코스명 (예: 올림프스코스). 코스 구분이 없으면 빈 문자열 */
+  course: string;
   status: RoundStatus;
   rsvp_deadline: string | null;
   created_at: string;
