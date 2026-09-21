@@ -11,6 +11,7 @@ import {
   listParticipants,
   listTeamAssignments,
 } from "@/lib/queries";
+import { ROUND_STATUS_STEPS } from "@/lib/types";
 import type { TeamMode } from "@/lib/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -356,5 +357,31 @@ export async function addSuggestionAction(formData: FormData) {
   });
   if (error) throw new Error(error.message);
 
+  revalidatePath(`/rounds/${roundId}`);
+}
+
+/**
+ * 라운딩 상태를 한 단계 이전으로 되돌린다 (완료->확정->조편성중->모집중).
+ * 참가체크/조편성/스코어 데이터는 지우지 않고 상태값만 되돌린다.
+ */
+export async function revertRoundStatusAction(formData: FormData) {
+  await requireAdmin();
+  const roundId = String(formData.get("round_id") ?? "");
+  const round = await getRound(roundId);
+  if (!round) throw new Error("라운딩을 찾을 수 없어요.");
+
+  const currentIndex = ROUND_STATUS_STEPS.indexOf(round.status);
+  if (currentIndex <= 0) {
+    throw new Error("더 이상 되돌릴 수 없어요.");
+  }
+  const previousStatus = ROUND_STATUS_STEPS[currentIndex - 1];
+
+  const { error } = await getSupabaseAdmin()
+    .from("rounds")
+    .update({ status: previousStatus })
+    .eq("id", roundId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
   revalidatePath(`/rounds/${roundId}`);
 }

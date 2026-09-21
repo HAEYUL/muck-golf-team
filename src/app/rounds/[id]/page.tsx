@@ -13,13 +13,14 @@ import {
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { RoundProgressSteps } from "@/components/RoundProgressSteps";
-import { TEAM_MODE_DESCRIPTION, TEAM_MODE_LABEL, TEAM_THEMES } from "@/lib/types";
+import { ROUND_STATUS_STEPS, TEAM_MODE_DESCRIPTION, TEAM_MODE_LABEL, TEAM_THEMES } from "@/lib/types";
 import type { TeamMode } from "@/lib/types";
 import {
   addSuggestionAction,
   closeRsvpAction,
   createTeamAssignmentAction,
   reopenRsvpAction,
+  revertRoundStatusAction,
   rsvpAction,
 } from "../actions";
 
@@ -80,6 +81,15 @@ export default async function RoundDetailPage({
           </p>
         </div>
         <RoundProgressSteps status={round.status} />
+        {member.is_admin && round.status !== "모집중" && (
+          <form action={revertRoundStatusAction}>
+            <input type="hidden" name="round_id" value={round.id} />
+            <button type="submit" className="btn btn-secondary w-full !py-2 !text-sm">
+              ⏪ 이전 단계({ROUND_STATUS_STEPS[ROUND_STATUS_STEPS.indexOf(round.status) - 1]})로
+              되돌리기
+            </button>
+          </form>
+        )}
       </section>
 
       <section className="card flex flex-col gap-3">
