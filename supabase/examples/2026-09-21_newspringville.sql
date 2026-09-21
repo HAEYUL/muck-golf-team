@@ -6,7 +6,7 @@ declare
   v_round_id uuid;
 begin
   insert into rounds (date, time, golf_course, course, status)
-  values ('2026-09-21', '12:44', '뉴스프링빌CC', '올림프스코스', '팀확정')
+  values ('2026-09-21', '12:44', '뉴스프링빌CC', '올림프스코스', '확정')
   returning id into v_round_id;
 
   insert into round_participants (round_id, member_id, attending)

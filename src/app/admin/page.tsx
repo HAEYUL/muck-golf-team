@@ -4,7 +4,12 @@ import { getCurrentMember } from "@/lib/session";
 import { listMembers, listRounds } from "@/lib/queries";
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
-import { createRoundAction } from "@/app/rounds/actions";
+import { DeleteRoundButton } from "@/components/DeleteRoundButton";
+import {
+  createRoundAction,
+  deleteRoundAction,
+  publishRoundAction,
+} from "@/app/rounds/actions";
 import { addGuestAction, toggleAdminAction, updateSkillRanksAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -81,19 +86,42 @@ export default async function AdminPage() {
         )}
         <div className="flex flex-col gap-2">
           {rounds.map((r) => (
-            <Link
+            <div
               key={r.id}
-              href={`/rounds/${r.id}`}
-              className="flex items-center justify-between rounded-xl border-2 border-sand px-4 py-3"
+              className="flex flex-col gap-2 rounded-xl border-2 px-4 py-3"
+              style={{ borderColor: r.is_published ? "var(--fairway)" : "var(--sand)" }}
             >
-              <div>
-                <p className="font-bold">{formatCourseLabel(r)}</p>
-                <p className="text-sm text-foreground/60">
-                  {formatDate(r.date)} · {formatTime(r.time)}
-                </p>
+              <div className="flex items-center justify-between gap-2">
+                <Link
+                  href={`/rounds/${r.id}`}
+                  className="cursor-pointer transition-colors hover:text-fairway hover:underline"
+                >
+                  <p className="font-bold">{formatCourseLabel(r)}</p>
+                  <p className="text-sm text-foreground/60">
+                    {formatDate(r.date)} · {formatTime(r.time)}
+                  </p>
+                </Link>
+                <StatusBadge status={r.status} />
               </div>
-              <StatusBadge status={r.status} />
-            </Link>
+              <div className="flex items-center gap-2">
+                <form action={publishRoundAction} className="flex-1">
+                  <input type="hidden" name="round_id" value={r.id} />
+                  <button
+                    type="submit"
+                    className={`btn w-full !py-1.5 !text-sm ${
+                      r.is_published ? "btn-primary" : "btn-secondary"
+                    }`}
+                  >
+                    {r.is_published ? "게시중 ✓" : "게시"}
+                  </button>
+                </form>
+                <DeleteRoundButton
+                  roundId={r.id}
+                  label={formatCourseLabel(r)}
+                  action={deleteRoundAction}
+                />
+              </div>
+            </div>
           ))}
         </div>
       </section>

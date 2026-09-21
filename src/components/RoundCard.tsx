@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Round, RoundParticipant, TeamAssignment } from "@/lib/types";
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "./StatusBadge";
+import { RoundProgressSteps } from "./RoundProgressSteps";
 import { rsvpAction, closeRsvpAction } from "@/app/rounds/actions";
 
 export function RoundCard({
@@ -41,6 +42,8 @@ export function RoundCard({
           참가 확정 {attendingCount}명
         </span>
       </div>
+
+      <RoundProgressSteps status={round.status} />
 
       <div>
         <p className="text-xl font-extrabold text-fairway-dark">
@@ -90,23 +93,21 @@ export function RoundCard({
         </>
       )}
 
-      {round.status === "마감" && (
+      {round.status === "조편성중" && (
         <p className="text-center text-foreground/70">
           참가 체크가 마감됐어요. {isAdmin ? "팀을 짜볼까요?" : "팀 편성을 기다려주세요!"}
         </p>
       )}
 
-      {(round.status === "팀확정" || round.status === "진행중") && assignment && (
-        <p className="text-center text-foreground/70">
-          팀이 결정됐어요! 🎉
-        </p>
+      {round.status === "확정" && assignment && (
+        <p className="text-center text-foreground/70">팀이 결정됐어요! 🎉</p>
       )}
 
       <Link href={`/rounds/${round.id}`} className="btn btn-secondary w-full">
         라운딩 상세 보기
       </Link>
 
-      {(round.status === "팀확정" || round.status === "진행중") && (
+      {round.status === "확정" && (
         <Link href={`/rounds/${round.id}/draw`} className="btn btn-primary w-full">
           🏌️ 팀 뽑기 결과 보기
         </Link>

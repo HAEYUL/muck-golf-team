@@ -25,10 +25,17 @@ create table if not exists rounds (
   -- 같은 골프장 안의 코스명 (예: 올림프스코스). 코스 구분이 없으면 빈 문자열('')
   course text not null default '',
   status text not null default '모집중'
-    check (status in ('모집중', '마감', '팀확정', '진행중', '완료')),
+    check (status in ('모집중', '조편성중', '확정', '완료')),
+  -- 홈 화면 맨 위에 노출할 라운딩인지 여부. 관리자가 라운딩 목록에서 [게시]로 지정한다.
+  is_published boolean not null default false,
   rsvp_deadline timestamptz,
   created_at timestamptz not null default now()
 );
+
+-- 게시된(is_published = true) 라운딩은 항상 하나만 존재하도록 강제한다.
+create unique index if not exists idx_rounds_single_published
+  on rounds ((is_published))
+  where is_published;
 
 -- 라운딩별 참가 체크
 create table if not exists round_participants (

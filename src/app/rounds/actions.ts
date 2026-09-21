@@ -121,7 +121,7 @@ export async function closeRsvpAction(formData: FormData) {
   const roundId = String(formData.get("round_id") ?? "");
   const { error } = await getSupabaseAdmin()
     .from("rounds")
-    .update({ status: "마감" })
+    .update({ status: "조편성중" })
     .eq("id", roundId);
   if (error) throw new Error(error.message);
   revalidatePath("/");
@@ -174,7 +174,7 @@ export async function createTeamAssignmentAction(formData: FormData) {
 
   await getSupabaseAdmin()
     .from("rounds")
-    .update({ status: "팀확정" })
+    .update({ status: "확정" })
     .eq("id", roundId);
 
   revalidatePath("/");
@@ -183,16 +183,95 @@ export async function createTeamAssignmentAction(formData: FormData) {
   redirect(`/rounds/${roundId}/draw`);
 }
 
-export async function startRoundAction(formData: FormData) {
-  await requireAdmin();
+/** 관리자가 참가자별 팀 번호를 직접 지정해서 팀을 편성/수정한다 */
+export async function saveManualTeamsAction(formData: FormData) {
+  const admin = await requireAdmin();
   const roundId = String(formData.get("round_id") ?? "");
-  const { error } = await getSupabaseAdmin()
-    .from("rounds")
-    .update({ status: "진행중" })
-    .eq("id", roundId);
+
+  const participants = await listParticipants(roundId);
+  const attendingIds = new Set(
+    participants.filter((p) => p.attending).map((p) => p.member_id)
+  );
+
+  const teams: Record<string, string[]> = {};
+  for (const memberId of attendingIds) {
+    const teamNo = String(formData.get(`team_${memberId}`) ?? "1");
+    if (!teams[teamNo]) teams[teamNo] = [];
+    teams[teamNo].push(memberId);
+  }
+
+  if (Object.keys(teams).length === 0) {
+    throw new Error("참가 확정된 인원이 없어서 팀을 편성할 수 없어요.");
+  }
+
+  const previousAssignments = await listTeamAssignments(roundId);
+  const nextAttemptNo =
+    previousAssignments.length > 0
+      ? Math.max(...previousAssignments.map((a) => a.attempt_no)) + 1
+      : 1;
+
+  const { error } = await getSupabaseAdmin().from("team_assignments").insert({
+    round_id: roundId,
+    attempt_no: nextAttemptNo,
+    mode: "manual",
+    teams,
+    created_by: admin.id,
+  });
   if (error) throw new Error(error.message);
+
+  await getSupabaseAdmin()
+    .from("rounds")
+    .update({ status: "확정" })
+    .eq("id", roundId);
+
   revalidatePath("/");
   revalidatePath(`/rounds/${roundId}`);
+  redirect(`/rounds/${roundId}`);
+}
+
+/** 관리자가 라운딩 목록에서 홈 화면에 노출할 라운딩을 고른다 (한 번에 하나만 게시) */
+export async function publishRoundAction(formData: FormData) {
+  await requireAdmin();
+  const roundId = String(formData.get("round_id") ?? "");
+  const round = await getRound(roundId);
+  if (!round) throw new Error("라운딩을 찾을 수 없어요.");
+
+  const supabase = getSupabaseAdmin();
+
+  if (round.is_published) {
+    const { error } = await supabase
+      .from("rounds")
+      .update({ is_published: false })
+      .eq("id", roundId);
+    if (error) throw new Error(error.message);
+  } else {
+    const { error: unpublishError } = await supabase
+      .from("rounds")
+      .update({ is_published: false })
+      .eq("is_published", true);
+    if (unpublishError) throw new Error(unpublishError.message);
+
+    const { error } = await supabase
+      .from("rounds")
+      .update({ is_published: true })
+      .eq("id", roundId);
+    if (error) throw new Error(error.message);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+/** 관리자가 라운딩을 완전히 삭제한다 (참가체크/조편성/스코어/사진도 함께 삭제됨) */
+export async function deleteRoundAction(formData: FormData) {
+  await requireAdmin();
+  const roundId = String(formData.get("round_id") ?? "");
+  const { error } = await getSupabaseAdmin().from("rounds").delete().eq("id", roundId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/memories");
 }
 
 export async function submitScoresAction(formData: FormData) {
