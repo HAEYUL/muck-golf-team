@@ -87,8 +87,8 @@ export interface RoundResult {
 }
 
 export const TEAM_THEMES = [
-  { no: 1, name: "버디팀", color: "#2f7a4f", ball: "#eab308" },
-  { no: 2, name: "이글팀", color: "#1d5c9c", ball: "#f8fafc" },
-  { no: 3, name: "파팀", color: "#b45309", ball: "#fb923c" },
-  { no: 4, name: "홀인원팀", color: "#7c3aed", ball: "#f472b6" },
+  { no: 1, name: "1조", color: "#2f7a4f", ball: "#eab308" },
+  { no: 2, name: "2조", color: "#1d5c9c", ball: "#f8fafc" },
+  { no: 3, name: "3조", color: "#b45309", ball: "#fb923c" },
+  { no: 4, name: "4조", color: "#7c3aed", ball: "#f472b6" },
 ] as const;
