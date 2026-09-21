@@ -28,18 +28,35 @@ export async function getMember(id: string): Promise<Member | null> {
   return (data as Member | null) ?? null;
 }
 
-/** 완료되지 않은 라운딩 중 가장 최근 것 (홈 화면에 보여줄 "다음 라운딩") */
+/** 진행 단계가 앞선(더 임박한) 라운딩일수록 먼저 보여준다 */
+const ACTIVE_STATUS_PRIORITY: Record<string, number> = {
+  진행중: 0,
+  팀확정: 1,
+  마감: 2,
+  모집중: 3,
+};
+
+/**
+ * 완료되지 않은 라운딩 중 홈 화면에 보여줄 "다음 라운딩" 하나를 고른다.
+ * 여러 개가 동시에 있으면 진행 단계가 더 앞선 라운딩(진행중 > 팀확정 > 마감 > 모집중)을
+ * 우선하고, 단계가 같으면 날짜/시간이 이른 것을 우선한다.
+ */
 export async function getActiveRound(): Promise<Round | null> {
   const { data, error } = await getSupabaseAdmin()
     .from("rounds")
     .select("*")
     .neq("status", "완료")
     .order("date", { ascending: true })
-    .order("time", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .order("time", { ascending: true });
   if (error) throw error;
-  return (data as Round | null) ?? null;
+  const rounds = (data ?? []) as Round[];
+  if (rounds.length === 0) return null;
+
+  return rounds.reduce((best, current) => {
+    const bestPriority = ACTIVE_STATUS_PRIORITY[best.status] ?? 99;
+    const currentPriority = ACTIVE_STATUS_PRIORITY[current.status] ?? 99;
+    return currentPriority < bestPriority ? current : best;
+  }, rounds[0]);
 }
 
 export async function listRounds(): Promise<Round[]> {
