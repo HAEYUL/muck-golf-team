@@ -21,9 +21,6 @@ export function MemberLineup({
             }}
           >
             <span>{m.name}</span>
-            <span className="text-xs font-medium text-foreground/50">
-              {m.is_guest ? "게스트" : m.gender}
-            </span>
           </div>
         );
       })}
