@@ -43,17 +43,21 @@ export default async function MemoriesPage() {
           const photoCount = result?.photos.length ?? 0;
 
           return (
-            <div key={round.id} className="card flex flex-col gap-3">
+            <Link
+              key={round.id}
+              href={`/rounds/${round.id}`}
+              className="card flex flex-col gap-3 transition-transform hover:bg-sand/10 active:scale-[0.98] active:opacity-80"
+            >
               <div className="flex items-center justify-between gap-2">
-                <Link
-                  href={`/rounds/${round.id}`}
-                  className="cursor-pointer text-lg font-extrabold text-fairway-dark transition-colors hover:text-fairway hover:underline"
-                >
+                <p className="text-lg font-extrabold text-fairway-dark">
                   {formatCourseLabel(round)}
-                </Link>
-                <span className="shrink-0 text-sm text-foreground/60">
-                  {formatDate(round.date)}
-                </span>
+                </p>
+                <div className="flex shrink-0 items-center gap-1">
+                  <span className="text-sm text-foreground/60">{formatDate(round.date)}</span>
+                  <span className="text-lg text-fairway" aria-hidden="true">
+                    ›
+                  </span>
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -70,14 +74,11 @@ export default async function MemoriesPage() {
                       </span>
                     );
                   })}
-                <Link
-                  href={`/rounds/${round.id}/photos`}
-                  className="rounded-full bg-fairway/10 px-3 py-1 text-xs font-bold text-fairway-dark transition-colors hover:bg-fairway/20"
-                >
+                <span className="rounded-full bg-fairway/10 px-3 py-1 text-xs font-bold text-fairway-dark">
                   📸 추억사진{photoCount > 0 ? ` ${photoCount}` : ""}
-                </Link>
+                </span>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
