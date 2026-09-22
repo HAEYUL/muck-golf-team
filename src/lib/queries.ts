@@ -1,6 +1,7 @@
 import "server-only";
 import { getSupabaseAdmin } from "./supabase-admin";
 import type {
+  Announcement,
   Member,
   Round,
   RoundParticipant,
@@ -170,6 +171,22 @@ export async function getMemberAverageScores(): Promise<Record<string, number>> 
     averages[memberId] = sum / count;
   }
   return averages;
+}
+
+export async function listAllAnnouncements(): Promise<Announcement[]> {
+  const { data, error } = await getSupabaseAdmin()
+    .from("announcements")
+    .select("*")
+    .order("start_date", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as Announcement[];
+}
+
+/** 오늘 날짜가 start_date~end_date 사이인 공지사항만 */
+export async function listActiveAnnouncements(): Promise<Announcement[]> {
+  const all = await listAllAnnouncements();
+  const today = new Date().toISOString().slice(0, 10);
+  return all.filter((a) => a.start_date <= today && a.end_date >= today);
 }
 
 export async function listMemberScoreHistory(memberId: string) {

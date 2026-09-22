@@ -4,6 +4,7 @@ import {
   getActiveRound,
   getLatestTeamAssignment,
   getMemberAverageScores,
+  listActiveAnnouncements,
   listMembers,
   listParticipants,
   listScores,
@@ -50,6 +51,7 @@ export default async function HomePage() {
   const memberMap = new Map(members.map((m) => [m.id, m]));
   const getName = (id: string) => memberMap.get(id)?.name ?? "?";
 
+  const announcements = await listActiveAnnouncements();
   const activeRound = await getActiveRound();
   const participants = activeRound
     ? await listParticipants(activeRound.id)
@@ -94,6 +96,19 @@ export default async function HomePage() {
           </button>
         </form>
       </header>
+
+      {announcements.length > 0 && (
+        <section className="flex flex-col gap-2">
+          {announcements.map((a) => (
+            <div
+              key={a.id}
+              className="rounded-xl border-2 border-accent bg-accent/10 px-4 py-3"
+            >
+              <p className="text-sm font-semibold text-foreground/90">📢 {a.content}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       <RoundCard
         round={activeRound}

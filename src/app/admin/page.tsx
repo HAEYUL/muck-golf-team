@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
-import { getMemberAverageScores, listMembers, listRounds } from "@/lib/queries";
+import { getMemberAverageScores, listAllAnnouncements, listMembers, listRounds } from "@/lib/queries";
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeleteRoundButton } from "@/components/DeleteRoundButton";
@@ -11,7 +11,13 @@ import {
   deleteRoundAction,
   publishRoundAction,
 } from "@/app/rounds/actions";
-import { addGuestAction, toggleAdminAction, updateSkillRanksAction } from "./actions";
+import {
+  addGuestAction,
+  createAnnouncementAction,
+  deleteAnnouncementAction,
+  toggleAdminAction,
+  updateSkillRanksAction,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -20,10 +26,11 @@ export default async function AdminPage() {
   if (!member) redirect("/");
   if (!member.is_admin) redirect("/");
 
-  const [members, rounds, averageByMember] = await Promise.all([
+  const [members, rounds, averageByMember, announcements] = await Promise.all([
     listMembers(),
     listRounds(),
     getMemberAverageScores(),
+    listAllAnnouncements(),
   ]);
   const upcomingRounds = rounds.filter((r) => r.status !== "완료");
 
@@ -41,6 +48,73 @@ export default async function AdminPage() {
           홈으로
         </Link>
       </header>
+
+      <section className="card flex flex-col gap-3">
+        <h2 className="text-lg font-bold">📢 공지사항</h2>
+        <p className="text-sm text-foreground/60">
+          지정한 기간 동안만 홈 화면 이름 아래에 노출돼요. 기간이 지나면 자동으로 사라져요.
+        </p>
+        <form action={createAnnouncementAction} className="flex flex-col gap-3">
+          <textarea
+            name="content"
+            required
+            placeholder="공지 내용을 입력하세요"
+            rows={2}
+            className="rounded-xl border-2 border-sand px-4 py-3 text-base"
+          />
+          <div className="flex gap-2">
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-sm font-semibold text-foreground/70">시작일</span>
+              <input
+                type="date"
+                name="start_date"
+                required
+                className="rounded-xl border-2 border-sand px-3 py-3"
+              />
+            </label>
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-sm font-semibold text-foreground/70">종료일</span>
+              <input
+                type="date"
+                name="end_date"
+                required
+                className="rounded-xl border-2 border-sand px-3 py-3"
+              />
+            </label>
+          </div>
+          <button type="submit" className="btn btn-primary w-full">
+            공지사항 등록하기
+          </button>
+        </form>
+
+        {announcements.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {announcements.map((a) => (
+              <div
+                key={a.id}
+                className="flex items-start justify-between gap-2 rounded-lg bg-sand/30 px-3 py-2"
+              >
+                <div>
+                  <p className="text-sm text-foreground/90">{a.content}</p>
+                  <p className="mt-1 text-xs text-foreground/50">
+                    {formatDate(a.start_date)} ~ {formatDate(a.end_date)}
+                  </p>
+                </div>
+                <form action={deleteAnnouncementAction}>
+                  <input type="hidden" name="announcement_id" value={a.id} />
+                  <button
+                    type="submit"
+                    className="shrink-0 text-xs font-semibold text-danger"
+                    aria-label="공지사항 삭제"
+                  >
+                    삭제
+                  </button>
+                </form>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="card flex flex-col gap-3">
         <h2 className="text-lg font-bold">새 라운딩 만들기</h2>

@@ -99,6 +99,17 @@ create table if not exists team_reveals (
   unique (team_assignment_id, member_id)
 );
 
+-- 공지사항: 관리자가 작성하고, 지정한 기간(start_date~end_date) 동안만 홈 화면에 노출
+create table if not exists announcements (
+  id uuid primary key default gen_random_uuid(),
+  content text not null,
+  start_date date not null,
+  end_date date not null,
+  created_by uuid references members(id),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_announcements_dates on announcements (start_date, end_date);
 create index if not exists idx_team_reveals_assignment on team_reveals (team_assignment_id);
 create index if not exists idx_round_suggestions_round on round_suggestions (round_id);
 create index if not exists idx_round_participants_round on round_participants (round_id);
@@ -117,3 +128,4 @@ alter table round_scores enable row level security;
 alter table round_results enable row level security;
 alter table round_suggestions enable row level security;
 alter table team_reveals enable row level security;
+alter table announcements enable row level security;

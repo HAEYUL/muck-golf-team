@@ -107,6 +107,15 @@ export interface TeamReveal {
   created_at: string;
 }
 
+export interface Announcement {
+  id: string;
+  content: string;
+  start_date: string; // YYYY-MM-DD
+  end_date: string; // YYYY-MM-DD
+  created_by: string | null;
+  created_at: string;
+}
+
 export const TEAM_THEMES = [
   { no: 1, name: "1조", color: "#2f7a4f", ball: "#eab308" },
   { no: 2, name: "2조", color: "#1d5c9c", ball: "#f8fafc" },
