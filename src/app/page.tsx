@@ -18,6 +18,7 @@ import { TeamRevealSection } from "@/components/TeamRevealSection";
 import { TeamResultsList } from "@/components/TeamResultsList";
 import { ScoreRankedList } from "@/components/ScoreRankedList";
 import { AddToHomeScreenButton } from "@/components/AddToHomeScreenButton";
+import { getCharacterUrl } from "@/lib/characters";
 
 export const dynamic = "force-dynamic";
 
@@ -87,11 +88,20 @@ export default async function HomePage() {
   return (
     <main className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-foreground/60">환영해요</p>
-          <h1 className="text-2xl font-extrabold text-fairway-dark">
-            {member.name}님 ⛳️
-          </h1>
+        <div className="flex items-center gap-3">
+          {getCharacterUrl(member.name, member.character_url) && (
+            <img
+              src={getCharacterUrl(member.name, member.character_url)!}
+              alt={`${member.name} 캐릭터`}
+              className="h-14 w-14 shrink-0 rounded-full border-2 border-fairway/30 object-cover object-top bg-white"
+            />
+          )}
+          <div>
+            <p className="text-sm text-foreground/60">환영해요</p>
+            <h1 className="text-2xl font-extrabold text-fairway-dark">
+              {member.name}님 ⛳️
+            </h1>
+          </div>
         </div>
         <form action={logoutAction}>
           <button className="btn btn-secondary !px-4 !py-2 !text-sm">
