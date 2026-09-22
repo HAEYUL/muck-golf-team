@@ -243,6 +243,39 @@ export default async function RoundDetailPage({
                   </button>
                 </form>
               )}
+              {member.is_admin && (
+                <details className="rounded-xl border-2 border-sand p-3">
+                  <summary className="cursor-pointer font-bold">
+                    🔁 다른 방식으로 다시 뽑기
+                  </summary>
+                  <form
+                    action={createTeamAssignmentAction}
+                    className="mt-3 flex flex-col gap-2"
+                  >
+                    <input type="hidden" name="round_id" value={round.id} />
+                    {MODES.map((mode, idx) => (
+                      <label key={mode} className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="mode"
+                          value={mode}
+                          defaultChecked={idx === 0}
+                        />
+                        {TEAM_MODE_LABEL[mode]}
+                      </label>
+                    ))}
+                    <button type="submit" className="btn btn-primary w-full">
+                      새로 뽑기 (게임 처음부터 다시 시작)
+                    </button>
+                  </form>
+                  <Link
+                    href={`/rounds/${round.id}/teams/edit`}
+                    className="btn btn-secondary mt-2 w-full"
+                  >
+                    ✍️ 수동으로 편성하기
+                  </Link>
+                </details>
+              )}
             </>
           ) : member.is_admin ? (
             <>
