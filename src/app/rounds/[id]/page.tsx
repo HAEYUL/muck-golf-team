@@ -21,6 +21,7 @@ import { ROUND_STATUS_STEPS, TEAM_MODE_DESCRIPTION, TEAM_MODE_LABEL } from "@/li
 import type { TeamMode } from "@/lib/types";
 import {
   addSuggestionAction,
+  deleteSuggestionAction,
   closeRsvpAction,
   createTeamAssignmentAction,
   forceConfirmTeamsAction,
@@ -119,11 +120,29 @@ export default async function RoundDetailPage({
             <p className="text-sm text-foreground/60">아직 등록된 건의사항이 없어요.</p>
           )}
           {suggestions.map((s) => (
-            <div key={s.id} className="rounded-lg bg-sand/30 px-3 py-2">
-              <p className="text-sm text-foreground/90">{s.content}</p>
-              <p className="mt-1 text-xs text-foreground/50">
-                {memberMap.get(s.member_id)?.name ?? "?"}
-              </p>
+            <div
+              key={s.id}
+              className="flex items-start justify-between gap-2 rounded-lg bg-sand/30 px-3 py-2"
+            >
+              <div>
+                <p className="text-sm text-foreground/90">{s.content}</p>
+                <p className="mt-1 text-xs text-foreground/50">
+                  {memberMap.get(s.member_id)?.name ?? "?"}
+                </p>
+              </div>
+              {(s.member_id === member.id || member.is_admin) && (
+                <form action={deleteSuggestionAction}>
+                  <input type="hidden" name="suggestion_id" value={s.id} />
+                  <input type="hidden" name="round_id" value={round.id} />
+                  <button
+                    type="submit"
+                    className="shrink-0 text-xs font-semibold text-danger"
+                    aria-label="건의사항 삭제"
+                  >
+                    삭제
+                  </button>
+                </form>
+              )}
             </div>
           ))}
         </div>

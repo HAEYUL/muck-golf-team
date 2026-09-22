@@ -408,6 +408,31 @@ export async function addSuggestionAction(formData: FormData) {
   revalidatePath(`/rounds/${roundId}`);
 }
 
+/** 건의사항은 작성자 본인 또는 관리자만 삭제할 수 있다 */
+export async function deleteSuggestionAction(formData: FormData) {
+  const currentMember = await requireMember();
+  const suggestionId = String(formData.get("suggestion_id") ?? "");
+  const roundId = String(formData.get("round_id") ?? "");
+
+  const supabase = getSupabaseAdmin();
+  const { data: suggestion, error: fetchError } = await supabase
+    .from("round_suggestions")
+    .select("member_id")
+    .eq("id", suggestionId)
+    .maybeSingle();
+  if (fetchError) throw new Error(fetchError.message);
+  if (!suggestion) throw new Error("이미 삭제된 건의사항이에요.");
+
+  if (suggestion.member_id !== currentMember.id && !currentMember.is_admin) {
+    throw new Error("작성자 본인 또는 관리자만 삭제할 수 있어요.");
+  }
+
+  const { error } = await supabase.from("round_suggestions").delete().eq("id", suggestionId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/rounds/${roundId}`);
+}
+
 /**
  * 라운딩 상태를 한 단계 이전으로 되돌린다 (완료->확정->조편성중->모집중).
  * 참가체크/조편성/스코어 데이터는 지우지 않고 상태값만 되돌린다.
