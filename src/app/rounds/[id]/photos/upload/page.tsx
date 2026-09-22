@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import { getRound } from "@/lib/queries";
 import { formatCourseLabel } from "@/lib/format";
-import { uploadRoundPhotosAction } from "../../../actions";
+import { UploadRoundPhotosForm } from "@/components/UploadRoundPhotosForm";
 
 export const dynamic = "force-dynamic";
 
@@ -32,20 +32,7 @@ export default async function UploadRoundPhotosPage({
         <p className="text-foreground/70">{formatCourseLabel(round)}</p>
       </div>
 
-      <form action={uploadRoundPhotosAction} className="flex flex-col gap-3">
-        <input type="hidden" name="round_id" value={id} />
-        <input
-          type="file"
-          name="photos"
-          accept="image/*"
-          multiple
-          required
-          className="rounded-lg border-2 border-dashed border-sand p-4"
-        />
-        <button type="submit" className="btn btn-primary w-full">
-          업로드하기
-        </button>
-      </form>
+      <UploadRoundPhotosForm roundId={id} />
     </main>
   );
 }
