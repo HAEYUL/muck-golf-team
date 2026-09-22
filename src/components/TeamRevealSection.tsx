@@ -35,18 +35,20 @@ export function TeamRevealSection({
 
   return (
     <section className="card flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-lg font-bold">참가자 명단</h2>
-        {mode && (
-          <span className="text-sm font-semibold text-foreground/60">
-            게임방식: {TEAM_MODE_LABEL[mode]}
-          </span>
-        )}
-      </div>
+      <h2 className="text-lg font-bold">참가자 명단</h2>
+
+      {mode && (
+        <div className="rounded-xl bg-fairway/10 px-4 py-3 text-center">
+          <p className="text-sm font-bold text-fairway-dark">
+            🎲 이번엔 <span className="text-fairway">{TEAM_MODE_LABEL[mode]}</span> 방식으로
+            조를 편성해요!
+          </p>
+        </div>
+      )}
 
       {mode && (
         <p className="text-center text-sm text-foreground/70">
-          조편성을 위해 참가자는 본인의 이름을 눌러 게임에 참가해 주세요.
+          참가자는 이름을 눌러 조편성 게임에 참가해 주세요.
           <br />
           모든 참가자의 게임이 끝나면 팀 확정이 완료됩니다.
         </p>

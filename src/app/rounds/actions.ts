@@ -195,9 +195,23 @@ export async function revealTeamAction(formData: FormData) {
     throw new Error("이번 라운딩 참가자만 게임에 참여할 수 있어요.");
   }
 
+  // 부부 한 팀 모드에서는 배우자도 같은 팀으로 확정돼 있으므로,
+  // 한 사람만 게임에 참가해도 배우자도 함께 게임한 것으로 처리한다.
+  const revealMemberIds = [currentMember.id];
+  if (
+    assignment.mode === "couples_together" &&
+    currentMember.partner_id &&
+    assignedMemberIds.includes(currentMember.partner_id)
+  ) {
+    revealMemberIds.push(currentMember.partner_id);
+  }
+
   const supabase = getSupabaseAdmin();
   const { error } = await supabase.from("team_reveals").upsert(
-    { team_assignment_id: assignment.id, member_id: currentMember.id },
+    revealMemberIds.map((memberId) => ({
+      team_assignment_id: assignment.id,
+      member_id: memberId,
+    })),
     { onConflict: "team_assignment_id,member_id", ignoreDuplicates: true }
   );
   if (error) throw new Error(error.message);
