@@ -80,8 +80,11 @@ export function TeamRouletteButton({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black/80 p-4">
-          <p className="text-lg font-bold text-white">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black/10 p-4 backdrop-blur-[1px]">
+          <p
+            className="rounded-full px-4 py-2 text-lg font-bold shadow-lg"
+            style={{ background: "rgba(246,243,234,0.95)", color: "var(--fairway-dark)" }}
+          >
             {showResult ? `${myTheme.name} 당첨! 🎉` : "두구두구두구..."}
           </p>
 
