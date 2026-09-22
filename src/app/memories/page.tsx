@@ -1,16 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
-import {
-  getLatestTeamAssignment,
-  getMemberAverageScores,
-  getRoundResult,
-  listCompletedRounds,
-  listMembers,
-  listScores,
-} from "@/lib/queries";
+import { getLatestTeamAssignment, getRoundResult, listCompletedRounds } from "@/lib/queries";
 import { formatCourseLabel, formatDate } from "@/lib/format";
-import { MEDALS, rankTopScores } from "@/lib/ranking";
 import { TEAM_THEMES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -19,21 +11,15 @@ export default async function MemoriesPage() {
   const member = await getCurrentMember();
   if (!member) redirect("/");
 
-  const [rounds, members, averageByMember] = await Promise.all([
-    listCompletedRounds(),
-    listMembers(),
-    getMemberAverageScores(),
-  ]);
-  const memberMap = new Map(members.map((m) => [m.id, m]));
+  const rounds = await listCompletedRounds();
 
   const cards = await Promise.all(
     rounds.map(async (round) => {
-      const [assignment, scores, result] = await Promise.all([
+      const [assignment, result] = await Promise.all([
         getLatestTeamAssignment(round.id),
-        listScores(round.id),
         getRoundResult(round.id),
       ]);
-      return { round, assignment, scores, result };
+      return { round, assignment, result };
     })
   );
 
@@ -53,8 +39,7 @@ export default async function MemoriesPage() {
       )}
 
       <div className="flex flex-col gap-4">
-        {cards.map(({ round, assignment, scores, result }) => {
-          const top3 = rankTopScores(scores, averageByMember, 3);
+        {cards.map(({ round, assignment, result }) => {
           const photoCount = result?.photos.length ?? 0;
 
           return (
@@ -92,17 +77,6 @@ export default async function MemoriesPage() {
                   📸 추억사진{photoCount > 0 ? ` ${photoCount}` : ""}
                 </Link>
               </div>
-
-              {top3.length > 0 && (
-                <div className="flex flex-col gap-0.5">
-                  {top3.map((s, idx) => (
-                    <p key={s.id} className="text-sm text-foreground/80">
-                      {MEDALS[idx]} {idx + 1}등: {memberMap.get(s.member_id)?.name ?? "?"} (
-                      {s.score}타)
-                    </p>
-                  ))}
-                </div>
-              )}
             </div>
           );
         })}
