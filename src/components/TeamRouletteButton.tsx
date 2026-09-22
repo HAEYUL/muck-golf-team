@@ -23,12 +23,14 @@ function wedgePath(cx: number, cy: number, r: number, startDeg: number, endDeg: 
 export function TeamRouletteButton({
   roundId,
   name,
+  characterUrl,
   wheelTeams,
   myTeamNo,
   revealAction,
 }: {
   roundId: string;
   name: string;
+  characterUrl?: string | null;
   wheelTeams: WheelTeam[];
   myTeamNo: number;
   revealAction: (formData: FormData) => void;
@@ -73,9 +75,16 @@ export function TeamRouletteButton({
       <button
         type="button"
         onClick={handleStart}
-        className="name-box w-full"
+        className="name-box w-full gap-2"
         style={{ borderColor: "var(--fairway)", background: "rgba(47,122,79,0.1)" }}
       >
+        {characterUrl && (
+          <img
+            src={characterUrl}
+            alt=""
+            className="h-8 w-8 shrink-0 rounded-full object-cover object-top bg-white"
+          />
+        )}
         {name} 눌러보기!
       </button>
 

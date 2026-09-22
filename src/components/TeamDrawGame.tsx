@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { TEAM_THEMES } from "@/lib/types";
+import { getCharacterUrl } from "@/lib/characters";
 
 type Participant = { id: string; name: string };
 
@@ -59,6 +60,7 @@ export function TeamDrawGame({
           const isAnimating = animatingId === p.id;
           const teamNo = teamByMember[p.id];
           const theme = TEAM_THEMES[(teamNo ?? 1) - 1] ?? TEAM_THEMES[0];
+          const characterUrl = getCharacterUrl(p.name);
 
           return (
             <button
@@ -79,16 +81,29 @@ export function TeamDrawGame({
                 <span className="text-2xl">⛳️</span>
               ) : isRevealed ? (
                 <>
-                  <span className="text-2xl" style={{ color: theme.ball }}>
-                    ⛳
-                  </span>
+                  {characterUrl && (
+                    <img
+                      src={characterUrl}
+                      alt=""
+                      className="h-10 w-10 rounded-full border-2 border-white/70 object-cover object-top bg-white"
+                    />
+                  )}
                   <span>{p.name}</span>
                   <span className="text-xs font-semibold opacity-90">
                     {theme.name}
                   </span>
                 </>
               ) : (
-                <span>{p.name}</span>
+                <>
+                  {characterUrl && (
+                    <img
+                      src={characterUrl}
+                      alt=""
+                      className="h-8 w-8 rounded-full object-cover object-top bg-white"
+                    />
+                  )}
+                  <span>{p.name}</span>
+                </>
               )}
             </button>
           );

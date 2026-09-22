@@ -1,6 +1,7 @@
 import { TEAM_MODE_LABEL, TEAM_THEMES } from "@/lib/types";
 import type { TeamMode } from "@/lib/types";
 import { TeamRouletteButton } from "./TeamRouletteButton";
+import { getCharacterUrl } from "@/lib/characters";
 
 type Participant = { id: string; name: string };
 
@@ -61,6 +62,8 @@ export function TeamRevealSection({
           const teamNo = teamByMember[p.id];
           const theme = teamNo ? TEAM_THEMES[teamNo - 1] ?? TEAM_THEMES[0] : null;
 
+          const characterUrl = getCharacterUrl(p.name);
+
           if (isRevealed && theme) {
             return (
               <div
@@ -68,6 +71,13 @@ export function TeamRevealSection({
                 className="name-box flex-col gap-1"
                 style={{ background: theme.color, borderColor: theme.color, color: "white" }}
               >
+                {characterUrl && (
+                  <img
+                    src={characterUrl}
+                    alt=""
+                    className="h-10 w-10 rounded-full border-2 border-white/70 object-cover object-top bg-white"
+                  />
+                )}
                 <span>{p.name}</span>
                 <span className="text-xs font-semibold opacity-90">{theme.name}</span>
               </div>
@@ -80,6 +90,7 @@ export function TeamRevealSection({
                 key={p.id}
                 roundId={roundId}
                 name={p.name}
+                characterUrl={characterUrl}
                 wheelTeams={wheelTeams}
                 myTeamNo={teamNo}
                 revealAction={revealAction}
@@ -88,7 +99,14 @@ export function TeamRevealSection({
           }
 
           return (
-            <div key={p.id} className="name-box opacity-60">
+            <div key={p.id} className="name-box gap-2 opacity-60">
+              {characterUrl && (
+                <img
+                  src={characterUrl}
+                  alt=""
+                  className="h-8 w-8 shrink-0 rounded-full object-cover object-top bg-white"
+                />
+              )}
               {p.name}
             </div>
           );
