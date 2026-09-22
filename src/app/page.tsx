@@ -16,6 +16,7 @@ import { RoundCard } from "@/components/RoundCard";
 import { TeamRevealSection } from "@/components/TeamRevealSection";
 import { TeamResultsList } from "@/components/TeamResultsList";
 import { ScoreRankedList } from "@/components/ScoreRankedList";
+import { AddToHomeScreenButton } from "@/components/AddToHomeScreenButton";
 
 export const dynamic = "force-dynamic";
 
@@ -139,12 +140,18 @@ export default async function HomePage() {
         <Link href="/me" className="btn btn-secondary">
           🙋 마이페이지
         </Link>
-        {member.is_admin && (
+        {member.is_admin ? (
           <Link href="/admin" className="btn btn-primary col-span-2">
             🛠 관리자 페이지
           </Link>
+        ) : (
+          <AddToHomeScreenButton />
         )}
       </nav>
+
+      <footer className="pt-2 text-center text-xs text-foreground/40">
+        2026 먹회골프 All rights reserved. · V.1
+      </footer>
     </main>
   );
 }
