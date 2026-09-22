@@ -79,11 +79,7 @@ export function TeamRouletteButton({
         style={{ borderColor: "var(--fairway)", background: "rgba(47,122,79,0.1)" }}
       >
         {characterUrl && (
-          <img
-            src={characterUrl}
-            alt=""
-            className="h-8 w-8 shrink-0 rounded-full object-cover object-top bg-white"
-          />
+          <img src={characterUrl} alt="" className="h-12 w-auto shrink-0 object-contain" />
         )}
         {name} 눌러보기!
       </button>

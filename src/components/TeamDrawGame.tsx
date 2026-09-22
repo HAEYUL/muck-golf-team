@@ -82,11 +82,7 @@ export function TeamDrawGame({
               ) : isRevealed ? (
                 <>
                   {characterUrl && (
-                    <img
-                      src={characterUrl}
-                      alt=""
-                      className="h-10 w-10 rounded-full border-2 border-white/70 object-cover object-top bg-white"
-                    />
+                    <img src={characterUrl} alt="" className="h-16 w-auto object-contain" />
                   )}
                   <span>{p.name}</span>
                   <span className="text-xs font-semibold opacity-90">
@@ -96,11 +92,7 @@ export function TeamDrawGame({
               ) : (
                 <>
                   {characterUrl && (
-                    <img
-                      src={characterUrl}
-                      alt=""
-                      className="h-8 w-8 rounded-full object-cover object-top bg-white"
-                    />
+                    <img src={characterUrl} alt="" className="h-12 w-auto object-contain" />
                   )}
                   <span>{p.name}</span>
                 </>
