@@ -3,7 +3,6 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import {
   getLatestTeamAssignment,
-  getMemberAverageScores,
   getRound,
   getRoundResult,
   listMembers,
@@ -54,16 +53,14 @@ export default async function RoundDetailPage({
   const round = await getRound(id);
   if (!round) notFound();
 
-  const [members, participants, assignment, scores, result, suggestions, averageByMember] =
-    await Promise.all([
-      listMembers(),
-      listParticipants(id),
-      getLatestTeamAssignment(id),
-      listScores(id),
-      getRoundResult(id),
-      listSuggestions(id),
-      getMemberAverageScores(),
-    ]);
+  const [members, participants, assignment, scores, result, suggestions] = await Promise.all([
+    listMembers(),
+    listParticipants(id),
+    getLatestTeamAssignment(id),
+    listScores(id),
+    getRoundResult(id),
+    listSuggestions(id),
+  ]);
 
   const memberMap = new Map(members.map((m) => [m.id, m]));
   const getName = (memberId: string) => memberMap.get(memberId)?.name ?? "?";
@@ -397,9 +394,10 @@ export default async function RoundDetailPage({
           <h2 className="text-lg font-bold">스코어</h2>
           <ScoreRankedList
             scores={scores}
-            averageByMember={averageByMember}
             getName={getName}
             assignedMemberIds={assignment ? Object.values(assignment.teams).flat() : []}
+            teams={assignment?.teams}
+            memberOrder={members.map((m) => m.id)}
           />
           {member.is_admin && (
             <Link href={`/rounds/${round.id}/score`} className="btn btn-secondary w-full">
