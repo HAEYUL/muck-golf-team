@@ -33,7 +33,10 @@ export default async function EditTeamsPage({
   ]);
 
   const memberMap = new Map(members.map((m) => [m.id, m]));
-  const attendingIds = participants.filter((p) => p.attending).map((p) => p.member_id);
+  const attendingIdSet = new Set(
+    participants.filter((p) => p.attending).map((p) => p.member_id)
+  );
+  const attendingIds = members.filter((m) => attendingIdSet.has(m.id)).map((m) => m.id);
 
   const currentTeamByMember = new Map<string, string>();
   if (assignment) {

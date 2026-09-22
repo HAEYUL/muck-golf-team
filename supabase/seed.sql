@@ -1,18 +1,19 @@
 -- 먹회골프 고정 멤버 11명 시드 데이터
 -- schema.sql 을 먼저 실행한 뒤 이 파일을 실행하세요.
 
-insert into members (name, gender, skill_rank, is_admin) values
-  ('이성표', '남', 1, true),
-  ('문숙현', '여', 2, false),
-  ('김옥화', '여', 3, false),
-  ('최홍창', '남', 4, false),
-  ('조인호', '남', 5, false),
-  ('김민환', '남', 6, false),
-  ('이효신', '남', 7, false),
-  ('유종범', '남', 8, false),
-  ('유정선', '여', 9, false),
-  ('김유정', '여', 10, false),
-  ('채효진', '여', 11, false);
+-- age_rank: 나이순(연장자=1). 이성표.조인호.유종범.문숙현.최홍창.김민환.유정선.김옥화.김유정.이효신.채효진 순.
+insert into members (name, gender, skill_rank, age_rank, is_admin) values
+  ('이성표', '남', 1, 1, true),
+  ('문숙현', '여', 2, 4, false),
+  ('김옥화', '여', 3, 8, false),
+  ('최홍창', '남', 4, 5, false),
+  ('조인호', '남', 5, 2, false),
+  ('김민환', '남', 6, 6, false),
+  ('이효신', '남', 7, 10, false),
+  ('유종범', '남', 8, 3, false),
+  ('유정선', '여', 9, 7, false),
+  ('김유정', '여', 10, 9, false),
+  ('채효진', '여', 11, 11, false);
 
 -- 배우자 연결 (양방향)
 update members set partner_id = (select id from members where name = '김옥화') where name = '이성표';

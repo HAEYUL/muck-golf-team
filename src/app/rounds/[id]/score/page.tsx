@@ -9,6 +9,7 @@ import {
 } from "@/lib/queries";
 import { TEAM_THEMES } from "@/lib/types";
 import { formatCourseLabel } from "@/lib/format";
+import { sortIdsByOrder } from "@/lib/sort";
 import { submitScoresAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +51,10 @@ export default async function ScorePage({
 
         {Object.entries(assignment.teams).map(([teamNo, ids]) => {
           const theme = TEAM_THEMES[Number(teamNo) - 1] ?? TEAM_THEMES[0];
+          const sortedIds = sortIdsByOrder(
+            ids,
+            members.map((m) => m.id)
+          );
           return (
             <div
               key={teamNo}
@@ -59,7 +64,7 @@ export default async function ScorePage({
               <p className="font-extrabold" style={{ color: theme.color }}>
                 {theme.name}
               </p>
-              {ids.map((mid) => (
+              {sortedIds.map((mid) => (
                 <div key={mid} className="flex items-center justify-between gap-3">
                   <span className="font-semibold">{memberMap.get(mid)?.name ?? "?"}</span>
                   <input

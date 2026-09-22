@@ -325,7 +325,11 @@ export default async function RoundDetailPage({
               {TEAM_MODE_LABEL[assignment.mode]} · {assignment.attempt_no}차
             </span>
           </div>
-          <TeamResultsList teams={assignment.teams} getName={getName} />
+          <TeamResultsList
+            teams={assignment.teams}
+            getName={getName}
+            memberOrder={members.map((m) => m.id)}
+          />
           <Link href={`/rounds/${round.id}/draw`} className="btn btn-secondary w-full">
             🎱 뽑기 화면 다시 보기
           </Link>

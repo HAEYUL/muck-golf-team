@@ -36,6 +36,8 @@ export interface Member {
   gender: Gender;
   partner_id: string | null;
   skill_rank: number;
+  /** 나이순 표시 순서. 낮을수록 연장자. 게스트는 기본값(999)으로 맨 뒤에 표시됨 */
+  age_rank: number;
   character_url: string | null;
   is_guest: boolean;
   is_admin: boolean;

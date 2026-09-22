@@ -60,9 +60,12 @@ export default async function HomePage() {
     ? await getLatestTeamAssignment(activeRound.id)
     : null;
 
-  const attendingParticipants = participants
-    .filter((p) => p.attending)
-    .map((p) => ({ id: p.member_id, name: getName(p.member_id) }));
+  const attendingIds = new Set(
+    participants.filter((p) => p.attending).map((p) => p.member_id)
+  );
+  const attendingParticipants = members
+    .filter((m) => attendingIds.has(m.id))
+    .map((m) => ({ id: m.id, name: m.name }));
 
   const teamByMember: Record<string, number> = {};
   if (assignment) {
@@ -132,7 +135,11 @@ export default async function HomePage() {
       {activeRound?.status === "확정" && assignment && (
         <section className="card flex flex-col gap-3">
           <h2 className="text-lg font-bold">팀 편성 결과</h2>
-          <TeamResultsList teams={assignment.teams} getName={getName} />
+          <TeamResultsList
+            teams={assignment.teams}
+            getName={getName}
+            memberOrder={members.map((m) => m.id)}
+          />
         </section>
       )}
 

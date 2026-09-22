@@ -10,6 +10,9 @@ create table if not exists members (
   gender text not null check (gender in ('남', '여')),
   partner_id uuid references members(id),
   skill_rank integer not null default 99,
+  -- 나이순 표시 순서(연장자=1). 스코어 관련 화면을 제외한 모든 명단에서 이 순서로 표시된다.
+  -- 게스트는 기본값(999)이라 항상 맨 뒤에 표시된다.
+  age_rank integer not null default 999,
   character_url text,
   is_guest boolean not null default false,
   is_admin boolean not null default false,

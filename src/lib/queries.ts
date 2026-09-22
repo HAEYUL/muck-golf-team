@@ -12,11 +12,12 @@ import type {
   TeamReveal,
 } from "./types";
 
+/** 나이순(연장자 우선, 게스트는 맨 뒤)으로 정렬된 전체 멤버 목록 */
 export async function listMembers(): Promise<Member[]> {
   const { data, error } = await getSupabaseAdmin()
     .from("members")
     .select("*")
-    .order("skill_rank", { ascending: true });
+    .order("age_rank", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Member[];
 }
