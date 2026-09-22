@@ -3,7 +3,8 @@ import type { Round, RoundParticipant } from "@/lib/types";
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "./StatusBadge";
 import { RoundProgressSteps } from "./RoundProgressSteps";
-import { rsvpAction, closeRsvpAction } from "@/app/rounds/actions";
+import { RsvpButtons } from "./RsvpButtons";
+import { closeRsvpAction } from "@/app/rounds/actions";
 
 export function RoundCard({
   round,
@@ -54,32 +55,7 @@ export function RoundCard({
 
       {round.status === "모집중" && (
         <>
-          <div className="flex gap-2">
-            <form action={rsvpAction} className="flex-1">
-              <input type="hidden" name="round_id" value={round.id} />
-              <input type="hidden" name="attending" value="true" />
-              <button
-                type="submit"
-                className={`btn w-full ${
-                  myEntry?.attending ? "btn-primary" : "btn-secondary"
-                }`}
-              >
-                참가 O
-              </button>
-            </form>
-            <form action={rsvpAction} className="flex-1">
-              <input type="hidden" name="round_id" value={round.id} />
-              <input type="hidden" name="attending" value="false" />
-              <button
-                type="submit"
-                className={`btn w-full ${
-                  myEntry && !myEntry.attending ? "btn-danger" : "btn-secondary"
-                }`}
-              >
-                불참 X
-              </button>
-            </form>
-          </div>
+          <RsvpButtons roundId={round.id} attending={myEntry ? myEntry.attending : null} />
           {isAdmin && (
             <form action={closeRsvpAction}>
               <input type="hidden" name="round_id" value={round.id} />
