@@ -6,6 +6,7 @@ import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeleteRoundButton } from "@/components/DeleteRoundButton";
 import { AdminPasswordForm } from "@/components/AdminPasswordForm";
+import { AutoFillSkillRanksButton } from "@/components/AutoFillSkillRanksButton";
 import {
   createRoundAction,
   deleteRoundAction,
@@ -280,7 +281,8 @@ export default async function AdminPage() {
               </div>
             );
           })}
-          <button type="submit" className="btn btn-secondary mt-2 w-full">
+          <AutoFillSkillRanksButton />
+          <button type="submit" className="btn btn-primary w-full">
             순위 저장하기
           </button>
         </form>
