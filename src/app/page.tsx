@@ -173,6 +173,9 @@ export default async function HomePage() {
         <Link href="/me" className="btn btn-secondary">
           🙋 마이페이지
         </Link>
+        <Link href="/guide" className="btn btn-secondary col-span-2">
+          📖 앱 가이드
+        </Link>
         {member.is_admin ? (
           <Link href="/admin" className="btn btn-primary col-span-2">
             🛠 관리자 페이지
