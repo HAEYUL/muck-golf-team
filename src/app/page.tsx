@@ -182,8 +182,11 @@ export default async function HomePage() {
         )}
       </nav>
 
-      <footer className="pt-2 text-center text-xs text-foreground/40">
-        2026 먹회골프 All rights reserved. · V.1
+      <footer className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 pt-2 text-center text-xs text-foreground/40">
+        <span aria-hidden="true">⛳️</span>
+        <span className="text-sm font-extrabold text-fairway">먹회골프</span>
+        <span>Copyright ©먹회골프 All Rights Reserved.</span>
+        <span>· V 2.0</span>
       </footer>
     </main>
   );
