@@ -412,7 +412,7 @@ export default async function RoundDetailPage({
       {round.status === "완료" && (
         <section className="card flex flex-col gap-3">
           <h2 className="text-lg font-bold">📸 사진</h2>
-          <PhotoGallery photos={result?.photos ?? []} />
+          <PhotoGallery photos={result?.photos ?? []} roundId={round.id} isAdmin={member.is_admin} />
           <Link href={`/rounds/${round.id}/photos`} className="btn btn-secondary w-full">
             사진 추가하기
           </Link>

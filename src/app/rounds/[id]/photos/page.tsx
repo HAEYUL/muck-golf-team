@@ -39,7 +39,7 @@ export default async function RoundPhotosPage({
         추억사진 올리기
       </Link>
 
-      <PhotoGallery photos={photos} />
+      <PhotoGallery photos={photos} roundId={id} isAdmin={member.is_admin} />
     </main>
   );
 }
