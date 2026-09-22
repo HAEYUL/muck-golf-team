@@ -18,6 +18,7 @@ import { RoundProgressSteps } from "@/components/RoundProgressSteps";
 import { TeamResultsList } from "@/components/TeamResultsList";
 import { ScoreRankedList } from "@/components/ScoreRankedList";
 import { ParticipantChecklist } from "@/components/ParticipantChecklist";
+import { PhotoGallery } from "@/components/PhotoGallery";
 import { ROUND_STATUS_STEPS, TEAM_MODE_DESCRIPTION, TEAM_MODE_LABEL } from "@/lib/types";
 import type { TeamMode } from "@/lib/types";
 import {
@@ -103,7 +104,7 @@ export default async function RoundDetailPage({
           </p>
         </div>
         <RoundProgressSteps status={round.status} />
-        {member.is_admin && round.status !== "모집중" && (
+        {member.is_admin && round.status !== "모집중" && round.status !== "완료" && (
           <form action={revertRoundStatusAction}>
             <input type="hidden" name="round_id" value={round.id} />
             <button type="submit" className="btn btn-secondary w-full !py-2 !text-sm">
@@ -114,53 +115,55 @@ export default async function RoundDetailPage({
         )}
       </section>
 
-      <section className="card flex flex-col gap-3">
-        <h2 className="text-lg font-bold">💬 건의사항</h2>
-        <div className="flex flex-col gap-2">
-          {suggestions.length === 0 && (
-            <p className="text-sm text-foreground/60">아직 등록된 건의사항이 없어요.</p>
-          )}
-          {suggestions.map((s) => (
-            <div
-              key={s.id}
-              className="flex items-start justify-between gap-2 rounded-lg bg-sand/30 px-3 py-2"
-            >
-              <div>
-                <p className="text-sm text-foreground/90">{s.content}</p>
-                <p className="mt-1 text-xs text-foreground/50">
-                  {memberMap.get(s.member_id)?.name ?? "?"}
-                </p>
+      {round.status !== "완료" && (
+        <section className="card flex flex-col gap-3">
+          <h2 className="text-lg font-bold">💬 건의사항</h2>
+          <div className="flex flex-col gap-2">
+            {suggestions.length === 0 && (
+              <p className="text-sm text-foreground/60">아직 등록된 건의사항이 없어요.</p>
+            )}
+            {suggestions.map((s) => (
+              <div
+                key={s.id}
+                className="flex items-start justify-between gap-2 rounded-lg bg-sand/30 px-3 py-2"
+              >
+                <div>
+                  <p className="text-sm text-foreground/90">{s.content}</p>
+                  <p className="mt-1 text-xs text-foreground/50">
+                    {memberMap.get(s.member_id)?.name ?? "?"}
+                  </p>
+                </div>
+                {(s.member_id === member.id || member.is_admin) && (
+                  <form action={deleteSuggestionAction}>
+                    <input type="hidden" name="suggestion_id" value={s.id} />
+                    <input type="hidden" name="round_id" value={round.id} />
+                    <button
+                      type="submit"
+                      className="shrink-0 text-xs font-semibold text-danger"
+                      aria-label="건의사항 삭제"
+                    >
+                      삭제
+                    </button>
+                  </form>
+                )}
               </div>
-              {(s.member_id === member.id || member.is_admin) && (
-                <form action={deleteSuggestionAction}>
-                  <input type="hidden" name="suggestion_id" value={s.id} />
-                  <input type="hidden" name="round_id" value={round.id} />
-                  <button
-                    type="submit"
-                    className="shrink-0 text-xs font-semibold text-danger"
-                    aria-label="건의사항 삭제"
-                  >
-                    삭제
-                  </button>
-                </form>
-              )}
-            </div>
-          ))}
-        </div>
-        <form action={addSuggestionAction} className="flex flex-col gap-2">
-          <input type="hidden" name="round_id" value={round.id} />
-          <textarea
-            name="content"
-            required
-            placeholder="건의사항을 남겨주세요"
-            rows={2}
-            className="rounded-xl border-2 border-sand px-4 py-3 text-base"
-          />
-          <button type="submit" className="btn btn-secondary w-full">
-            건의사항 남기기
-          </button>
-        </form>
-      </section>
+            ))}
+          </div>
+          <form action={addSuggestionAction} className="flex flex-col gap-2">
+            <input type="hidden" name="round_id" value={round.id} />
+            <textarea
+              name="content"
+              required
+              placeholder="건의사항을 남겨주세요"
+              rows={2}
+              className="rounded-xl border-2 border-sand px-4 py-3 text-base"
+            />
+            <button type="submit" className="btn btn-secondary w-full">
+              건의사항 남기기
+            </button>
+          </form>
+        </section>
+      )}
 
       {round.status === "모집중" && (
         <section className="card flex flex-col gap-3">
@@ -347,33 +350,35 @@ export default async function RoundDetailPage({
             getName={getName}
             memberOrder={members.map((m) => m.id)}
           />
-          <Link href={`/rounds/${round.id}/draw`} className="btn btn-secondary w-full">
-            🎱 뽑기 화면 다시 보기
-          </Link>
-          {member.is_admin && (
-            <details className="rounded-xl border-2 border-sand p-3">
-              <summary className="cursor-pointer font-bold">
-                🔁 {round.status === "완료" ? "지난 팀 편성 수정하기" : "다시 팀짜기"}
-              </summary>
-              <form action={createTeamAssignmentAction} className="mt-3 flex flex-col gap-2">
-                <input type="hidden" name="round_id" value={round.id} />
-                {MODES.map((mode, idx) => (
-                  <label key={mode} className="flex items-center gap-2">
-                    <input type="radio" name="mode" value={mode} defaultChecked={idx === 0} />
-                    {TEAM_MODE_LABEL[mode]}
-                  </label>
-                ))}
-                <button type="submit" className="btn btn-primary w-full">
-                  새로 뽑기
-                </button>
-              </form>
-              <Link
-                href={`/rounds/${round.id}/teams/edit`}
-                className="btn btn-secondary mt-2 w-full"
-              >
-                ✍️ 수동으로 수정하기
+          {round.status !== "완료" && (
+            <>
+              <Link href={`/rounds/${round.id}/draw`} className="btn btn-secondary w-full">
+                🎱 뽑기 화면 다시 보기
               </Link>
-            </details>
+              {member.is_admin && (
+                <details className="rounded-xl border-2 border-sand p-3">
+                  <summary className="cursor-pointer font-bold">🔁 다시 팀짜기</summary>
+                  <form action={createTeamAssignmentAction} className="mt-3 flex flex-col gap-2">
+                    <input type="hidden" name="round_id" value={round.id} />
+                    {MODES.map((mode, idx) => (
+                      <label key={mode} className="flex items-center gap-2">
+                        <input type="radio" name="mode" value={mode} defaultChecked={idx === 0} />
+                        {TEAM_MODE_LABEL[mode]}
+                      </label>
+                    ))}
+                    <button type="submit" className="btn btn-primary w-full">
+                      새로 뽑기
+                    </button>
+                  </form>
+                  <Link
+                    href={`/rounds/${round.id}/teams/edit`}
+                    className="btn btn-secondary mt-2 w-full"
+                  >
+                    ✍️ 수동으로 수정하기
+                  </Link>
+                </details>
+              )}
+            </>
           )}
         </section>
       )}
@@ -401,11 +406,15 @@ export default async function RoundDetailPage({
               📝 스코어 수정하기
             </Link>
           )}
+        </section>
+      )}
+
+      {round.status === "완료" && (
+        <section className="card flex flex-col gap-3">
+          <h2 className="text-lg font-bold">📸 사진</h2>
+          <PhotoGallery photos={result?.photos ?? []} />
           <Link href={`/rounds/${round.id}/photos`} className="btn btn-secondary w-full">
-            📸 추억사진 {result && result.photos.length > 0 ? `보기 (${result.photos.length})` : "올리기"}
-          </Link>
-          <Link href="/memories" className="btn btn-secondary w-full">
-            📸 추억 페이지에서 보기
+            사진 추가하기
           </Link>
         </section>
       )}
