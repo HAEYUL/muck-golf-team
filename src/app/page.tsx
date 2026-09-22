@@ -107,7 +107,8 @@ export default async function HomePage() {
               key={a.id}
               className="rounded-xl border-2 border-accent bg-accent/10 px-4 py-3"
             >
-              <p className="text-sm font-semibold text-foreground/90">📢 {a.content}</p>
+              <p className="text-sm font-extrabold text-accent">📢 알림/공지사항</p>
+              <p className="mt-1 text-sm font-semibold text-foreground/90">{a.content}</p>
             </div>
           ))}
         </section>
