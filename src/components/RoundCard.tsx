@@ -4,7 +4,6 @@ import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import { StatusBadge } from "./StatusBadge";
 import { RoundProgressSteps } from "./RoundProgressSteps";
 import { RsvpButtons } from "./RsvpButtons";
-import { closeRsvpAction } from "@/app/rounds/actions";
 
 export function RoundCard({
   round,
@@ -54,17 +53,7 @@ export function RoundCard({
       </div>
 
       {round.status === "모집중" && (
-        <>
-          <RsvpButtons roundId={round.id} attending={myEntry ? myEntry.attending : null} />
-          {isAdmin && (
-            <form action={closeRsvpAction}>
-              <input type="hidden" name="round_id" value={round.id} />
-              <button type="submit" className="btn btn-secondary w-full">
-                참가 체크 마감하기
-              </button>
-            </form>
-          )}
-        </>
+        <RsvpButtons roundId={round.id} attending={myEntry ? myEntry.attending : null} />
       )}
 
       <Link href={`/rounds/${round.id}`} className="btn btn-secondary w-full">
