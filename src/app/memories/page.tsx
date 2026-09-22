@@ -28,9 +28,13 @@ export default async function MemoriesPage() {
         <h1 className="text-xl font-extrabold text-fairway-dark">📸 추억 페이지</h1>
       </header>
 
-      {cards.length === 0 && (
+      {cards.length === 0 ? (
         <p className="text-center text-foreground/60">
           아직 완료된 라운딩이 없어요. 첫 라운딩을 기다려주세요!
+        </p>
+      ) : (
+        <p className="text-center text-sm text-foreground/60">
+          궁금한 라운딩을 눌러보세요! 자세한 기록을 볼 수 있어요.
         </p>
       )}
 
