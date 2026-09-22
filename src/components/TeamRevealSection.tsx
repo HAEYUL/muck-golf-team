@@ -72,11 +72,7 @@ export function TeamRevealSection({
                 style={{ background: theme.color, borderColor: theme.color, color: "white" }}
               >
                 {characterUrl && (
-                  <img
-                    src={characterUrl}
-                    alt=""
-                    className="h-10 w-10 rounded-full border-2 border-white/70 object-cover object-top bg-white"
-                  />
+                  <img src={characterUrl} alt="" className="h-16 w-auto object-contain" />
                 )}
                 <span>{p.name}</span>
                 <span className="text-xs font-semibold opacity-90">{theme.name}</span>
@@ -101,11 +97,7 @@ export function TeamRevealSection({
           return (
             <div key={p.id} className="name-box gap-2 opacity-60">
               {characterUrl && (
-                <img
-                  src={characterUrl}
-                  alt=""
-                  className="h-8 w-8 shrink-0 rounded-full object-cover object-top bg-white"
-                />
+                <img src={characterUrl} alt="" className="h-12 w-auto shrink-0 object-contain" />
               )}
               {p.name}
             </div>

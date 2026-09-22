@@ -93,7 +93,7 @@ export default async function HomePage() {
             <img
               src={getCharacterUrl(member.name, member.character_url)!}
               alt={`${member.name} 캐릭터`}
-              className="h-14 w-14 shrink-0 rounded-full border-2 border-fairway/30 object-cover object-top bg-white"
+              className="h-20 w-auto shrink-0 object-contain"
             />
           )}
           <div>
