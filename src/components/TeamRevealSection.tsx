@@ -1,5 +1,6 @@
 import { TEAM_MODE_LABEL, TEAM_THEMES } from "@/lib/types";
 import type { TeamMode } from "@/lib/types";
+import { TeamRouletteButton } from "./TeamRouletteButton";
 
 type Participant = { id: string; name: string };
 
@@ -24,6 +25,13 @@ export function TeamRevealSection({
   const waitingNames = participants
     .filter((p) => !revealedSet.has(p.id))
     .map((p) => p.name);
+
+  const wheelTeams = Array.from(new Set(Object.values(teamByMember)))
+    .sort((a, b) => a - b)
+    .map((no) => {
+      const theme = TEAM_THEMES[no - 1] ?? TEAM_THEMES[0];
+      return { no, name: theme.name, color: theme.color };
+    });
 
   return (
     <section className="card flex flex-col gap-3">
@@ -64,18 +72,16 @@ export function TeamRevealSection({
             );
           }
 
-          if (mode && isMe) {
+          if (mode && isMe && teamNo && wheelTeams.length > 0) {
             return (
-              <form key={p.id} action={revealAction}>
-                <input type="hidden" name="round_id" value={roundId} />
-                <button
-                  type="submit"
-                  className="name-box w-full"
-                  style={{ borderColor: "var(--fairway)", background: "rgba(47,122,79,0.1)" }}
-                >
-                  {p.name} 눌러보기!
-                </button>
-              </form>
+              <TeamRouletteButton
+                key={p.id}
+                roundId={roundId}
+                name={p.name}
+                wheelTeams={wheelTeams}
+                myTeamNo={teamNo}
+                revealAction={revealAction}
+              />
             );
           }
 
