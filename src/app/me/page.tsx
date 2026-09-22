@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import { listMemberScoreHistory } from "@/lib/queries";
 import { formatCourseLabel, formatDate } from "@/lib/format";
+import { getCharacterUrl } from "@/lib/characters";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ export default async function MePage() {
     ? Math.round((history.reduce((sum, h) => sum + h.score, 0) / count) * 10) / 10
     : null;
   const best = count ? Math.min(...history.map((h) => h.score)) : null;
+  const characterUrl = getCharacterUrl(member.name, member.character_url);
 
   return (
     <main className="flex flex-col gap-6">
@@ -26,11 +28,22 @@ export default async function MePage() {
         <h1 className="text-xl font-extrabold text-fairway-dark">🙋 마이페이지</h1>
       </header>
 
-      <section className="card text-center">
-        <p className="text-2xl font-extrabold text-fairway-dark">{member.name}님</p>
-        <p className="mt-1 text-foreground/60">
-          {member.is_admin ? "관리자" : member.is_guest ? "게스트" : "정회원"} · 실력순위 {member.skill_rank}위
-        </p>
+      <section className="card flex flex-col items-center gap-3">
+        <div className="flex items-center gap-3">
+          {characterUrl && (
+            <img
+              src={characterUrl}
+              alt={`${member.name} 캐릭터`}
+              className="h-28 w-auto shrink-0 object-contain"
+            />
+          )}
+          <div>
+            <p className="text-2xl font-extrabold text-fairway-dark">{member.name}님</p>
+            <p className="mt-1 text-foreground/60">
+              {member.is_admin ? "관리자" : member.is_guest ? "게스트" : "정회원"}
+            </p>
+          </div>
+        </div>
       </section>
 
       <section className="grid grid-cols-3 gap-3 text-center">
