@@ -3,7 +3,6 @@ import { getCurrentMember } from "@/lib/session";
 import {
   getActiveRound,
   getLatestTeamAssignment,
-  getMemberAverageScores,
   listActiveAnnouncements,
   listMembers,
   listParticipants,
@@ -82,8 +81,6 @@ export default async function HomePage() {
 
   const scores =
     activeRound?.status === "완료" ? await listScores(activeRound.id) : [];
-  const averageByMember =
-    activeRound?.status === "완료" ? await getMemberAverageScores() : {};
 
   return (
     <main className="flex flex-col gap-6">
@@ -159,9 +156,10 @@ export default async function HomePage() {
           <h2 className="text-lg font-bold">스코어</h2>
           <ScoreRankedList
             scores={scores}
-            averageByMember={averageByMember}
             getName={getName}
             assignedMemberIds={assignment ? Object.values(assignment.teams).flat() : []}
+            teams={assignment?.teams}
+            memberOrder={members.map((m) => m.id)}
           />
         </section>
       )}
