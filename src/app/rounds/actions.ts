@@ -141,6 +141,21 @@ export async function reopenRsvpAction(formData: FormData) {
   revalidatePath(`/rounds/${roundId}`);
 }
 
+/** 관리자가 특정 참가자의 참가체크 기록을 지워서 "미응답" 상태로 되돌린다 */
+export async function resetParticipationAction(formData: FormData) {
+  await requireAdmin();
+  const roundId = String(formData.get("round_id") ?? "");
+  const memberId = String(formData.get("member_id") ?? "");
+  const { error } = await getSupabaseAdmin()
+    .from("round_participants")
+    .delete()
+    .eq("round_id", roundId)
+    .eq("member_id", memberId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
+  revalidatePath(`/rounds/${roundId}`);
+}
+
 export async function createTeamAssignmentAction(formData: FormData) {
   const admin = await requireAdmin();
   const roundId = String(formData.get("round_id") ?? "");

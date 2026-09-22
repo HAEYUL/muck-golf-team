@@ -17,6 +17,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { RoundProgressSteps } from "@/components/RoundProgressSteps";
 import { TeamResultsList } from "@/components/TeamResultsList";
 import { ScoreRankedList } from "@/components/ScoreRankedList";
+import { ParticipantChecklist } from "@/components/ParticipantChecklist";
 import { ROUND_STATUS_STEPS, TEAM_MODE_DESCRIPTION, TEAM_MODE_LABEL } from "@/lib/types";
 import type { TeamMode } from "@/lib/types";
 import {
@@ -191,43 +192,12 @@ export default async function RoundDetailPage({
             </form>
           </div>
 
-          <div className="flex flex-col gap-1">
-            {members
-              .filter((m) => !m.is_guest || participantMap.has(m.id))
-              .map((m) => {
-                const entry = participantMap.get(m.id);
-                const label = entry ? (entry.attending ? "참가" : "불참") : "미응답";
-                return (
-                  <div
-                    key={m.id}
-                    className="flex items-center justify-between rounded-lg px-2 py-1.5"
-                  >
-                    <span className="font-medium">{m.name}</span>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-sm font-semibold ${
-                          entry?.attending
-                            ? "text-fairway"
-                            : entry
-                              ? "text-danger"
-                              : "text-foreground/40"
-                        }`}
-                      >
-                        {label}
-                      </span>
-                      {member.is_admin && (
-                        <form action={rsvpAction} className="flex gap-1">
-                          <input type="hidden" name="round_id" value={round.id} />
-                          <input type="hidden" name="member_id" value={m.id} />
-                          <input type="hidden" name="attending" value="true" />
-                          <button className="btn btn-secondary !px-2 !py-1 !text-xs">O</button>
-                        </form>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
+          <ParticipantChecklist
+            members={members.filter((m) => !m.is_guest || participantMap.has(m.id))}
+            participantMap={participantMap}
+            roundId={round.id}
+            isAdmin={member.is_admin}
+          />
 
           {member.is_admin && (
             <form action={closeRsvpAction}>
@@ -313,6 +283,20 @@ export default async function RoundDetailPage({
                 참가 체크 다시 열기
               </button>
             </form>
+          )}
+
+          {member.is_admin && (
+            <details className="rounded-xl border-2 border-sand p-3">
+              <summary className="cursor-pointer font-bold">👥 참가자 명단 확인/수정</summary>
+              <div className="mt-3">
+                <ParticipantChecklist
+                  members={members.filter((m) => !m.is_guest || participantMap.has(m.id))}
+                  participantMap={participantMap}
+                  roundId={round.id}
+                  isAdmin={member.is_admin}
+                />
+              </div>
+            </details>
           )}
         </section>
       )}
