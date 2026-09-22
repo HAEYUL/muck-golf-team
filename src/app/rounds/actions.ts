@@ -420,6 +420,41 @@ export async function uploadRoundPhotosAction(formData: FormData) {
   redirect(`/rounds/${roundId}/photos`);
 }
 
+/** 잘못 올라간 추억사진을 관리자가 삭제한다 */
+export async function deleteRoundPhotoAction(formData: FormData) {
+  await requireAdmin();
+  const roundId = String(formData.get("round_id") ?? "");
+  const photoUrl = String(formData.get("photo_url") ?? "");
+  if (!roundId || !photoUrl) throw new Error("삭제할 사진 정보가 없어요.");
+
+  const supabase = getSupabaseAdmin();
+  const { data: existingResult } = await supabase
+    .from("round_results")
+    .select("photos")
+    .eq("round_id", roundId)
+    .maybeSingle();
+
+  const remainingPhotos = (existingResult?.photos ?? []).filter((url: string) => url !== photoUrl);
+
+  const { error } = await supabase
+    .from("round_results")
+    .update({ photos: remainingPhotos })
+    .eq("round_id", roundId);
+  if (error) throw new Error(error.message);
+
+  const bucket = process.env.SUPABASE_PHOTO_BUCKET || "round-photos";
+  const pathMarker = `/object/public/${bucket}/`;
+  const markerIndex = photoUrl.indexOf(pathMarker);
+  if (markerIndex !== -1) {
+    const storagePath = photoUrl.slice(markerIndex + pathMarker.length);
+    await supabase.storage.from(bucket).remove([storagePath]);
+  }
+
+  revalidatePath(`/rounds/${roundId}`);
+  revalidatePath(`/rounds/${roundId}/photos`);
+  revalidatePath("/memories");
+}
+
 /** 라운딩별 건의사항. 로그인한 사람 누구나 쓰고 볼 수 있다 */
 export async function addSuggestionAction(formData: FormData) {
   const currentMember = await requireMember();
