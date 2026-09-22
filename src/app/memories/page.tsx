@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
-import { getLatestTeamAssignment, getRoundResult, listCompletedRounds } from "@/lib/queries";
+import { getRoundResult, listCompletedRounds } from "@/lib/queries";
 import { formatCourseLabel, formatDate } from "@/lib/format";
-import { TEAM_THEMES } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +14,8 @@ export default async function MemoriesPage() {
 
   const cards = await Promise.all(
     rounds.map(async (round) => {
-      const [assignment, result] = await Promise.all([
-        getLatestTeamAssignment(round.id),
-        getRoundResult(round.id),
-      ]);
-      return { round, assignment, result };
+      const result = await getRoundResult(round.id);
+      return { round, result };
     })
   );
 
@@ -39,7 +35,7 @@ export default async function MemoriesPage() {
       )}
 
       <div className="flex flex-col gap-4">
-        {cards.map(({ round, assignment, result }) => {
+        {cards.map(({ round, result }) => {
           const photoCount = result?.photos.length ?? 0;
 
           return (
@@ -61,19 +57,12 @@ export default async function MemoriesPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                {assignment &&
-                  Object.entries(assignment.teams).map(([teamNo, ids]) => {
-                    const theme = TEAM_THEMES[Number(teamNo) - 1] ?? TEAM_THEMES[0];
-                    return (
-                      <span
-                        key={teamNo}
-                        className="rounded-full px-3 py-1 text-xs font-bold"
-                        style={{ background: `${theme.color}22`, color: theme.color }}
-                      >
-                        {theme.name} {ids.length}명
-                      </span>
-                    );
-                  })}
+                <span className="rounded-full bg-accent/15 px-3 py-1 text-xs font-bold text-accent">
+                  🎲 조편성
+                </span>
+                <span className="rounded-full bg-sky/15 px-3 py-1 text-xs font-bold text-sky">
+                  ⛳ 스코어
+                </span>
                 <span className="rounded-full bg-fairway/10 px-3 py-1 text-xs font-bold text-fairway-dark">
                   📸 추억사진{photoCount > 0 ? ` ${photoCount}` : ""}
                 </span>
