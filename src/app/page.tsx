@@ -36,12 +36,14 @@ export default async function HomePage() {
           <p className="mt-1 text-foreground/70">이름을 입력하고 입장해주세요</p>
         </div>
         <NameAutocompleteLogin
-          members={members.map((m) => ({
-            id: m.id,
-            name: m.name,
-            is_admin: m.is_admin,
-            has_password: !!m.password_hash,
-          }))}
+          members={members
+            .filter((m) => m.is_active)
+            .map((m) => ({
+              id: m.id,
+              name: m.name,
+              is_admin: m.is_admin,
+              has_password: !!m.password_hash,
+            }))}
           action={loginAction}
         />
       </main>

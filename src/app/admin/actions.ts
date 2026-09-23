@@ -120,6 +120,42 @@ export async function deleteMemberAction(formData: FormData) {
   revalidatePath("/admin");
 }
 
+/** 정회원 탈퇴 처리(비활성화)/재가입(재활성화). 완전 삭제와 달리 과거 라운딩 기록은 그대로 남는다 */
+export async function toggleMemberActiveAction(formData: FormData) {
+  const admin = await requireAdmin();
+  const memberId = String(formData.get("member_id") ?? "");
+  const isActive = formData.get("is_active") === "true";
+  if (!memberId) throw new Error("대상 회원 정보가 없어요.");
+  if (memberId === admin.id && !isActive) {
+    throw new Error("본인 계정은 비활성화할 수 없어요.");
+  }
+
+  const { error } = await getSupabaseAdmin()
+    .from("members")
+    .update({ is_active: isActive })
+    .eq("id", memberId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+/** 게스트를 정회원으로 전환한다. 같은 회원 행을 그대로 쓰므로 과거 기록이 유지된다 */
+export async function promoteGuestToMemberAction(formData: FormData) {
+  await requireAdmin();
+  const memberId = String(formData.get("member_id") ?? "");
+  if (!memberId) throw new Error("대상 회원 정보가 없어요.");
+
+  const { error } = await getSupabaseAdmin()
+    .from("members")
+    .update({ is_guest: false })
+    .eq("id", memberId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
 export async function updateSkillRanksAction(formData: FormData) {
   await requireAdmin();
   const supabase = getSupabaseAdmin();

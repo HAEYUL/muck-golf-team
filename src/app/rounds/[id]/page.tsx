@@ -193,7 +193,7 @@ export default async function RoundDetailPage({
           </div>
 
           <ParticipantChecklist
-            members={members.filter((m) => !m.is_guest || participantMap.has(m.id))}
+            members={members.filter((m) => (!m.is_guest && m.is_active) || participantMap.has(m.id))}
             participantMap={participantMap}
             roundId={round.id}
             isAdmin={member.is_admin}
@@ -323,7 +323,7 @@ export default async function RoundDetailPage({
               <summary className="cursor-pointer font-bold">👥 참가자 명단 확인/수정</summary>
               <div className="mt-3">
                 <ParticipantChecklist
-                  members={members.filter((m) => !m.is_guest || participantMap.has(m.id))}
+                  members={members.filter((m) => (!m.is_guest && m.is_active) || participantMap.has(m.id))}
                   participantMap={participantMap}
                   roundId={round.id}
                   isAdmin={member.is_admin}
