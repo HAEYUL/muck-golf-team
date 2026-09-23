@@ -18,6 +18,7 @@ import { TeamResultsList } from "@/components/TeamResultsList";
 import { ScoreRankedList } from "@/components/ScoreRankedList";
 import { AddToHomeScreenButton } from "@/components/AddToHomeScreenButton";
 import { getCharacterUrl } from "@/lib/characters";
+import { SongReplayButton, SongToggleButton } from "@/components/MuckSongButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +101,7 @@ export default async function HomePage() {
             <h1 className="text-2xl font-extrabold text-fairway-dark">
               {member.name}님 ⛳️
             </h1>
+            <SongToggleButton />
           </div>
         </div>
         <form action={logoutAction}>
@@ -183,6 +185,7 @@ export default async function HomePage() {
           <br />
           함께라서 좋은, <span className="font-extrabold text-fairway">먹회골프</span>
         </p>
+        <SongReplayButton />
         {member.is_admin ? (
           <Link href="/admin" className="btn btn-primary col-span-2">
             🛠 관리자 페이지
