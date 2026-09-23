@@ -12,7 +12,8 @@ import type {
   TeamReveal,
 } from "./types";
 
-/** 나이순(연장자 우선, 게스트는 맨 뒤)으로 정렬된 전체 멤버 목록 */
+/** 나이순(연장자 우선, 게스트는 맨 뒤)으로 정렬된 전체 멤버 목록. 탈퇴(비활성화)한 회원도
+ *  포함하므로, 과거 라운딩 기록의 이름을 표시할 때(getName 등)는 이 함수를 쓴다 */
 export async function listMembers(): Promise<Member[]> {
   const { data, error } = await getSupabaseAdmin()
     .from("members")
@@ -20,6 +21,13 @@ export async function listMembers(): Promise<Member[]> {
     .order("age_rank", { ascending: true });
   if (error) throw error;
   return (data ?? []) as Member[];
+}
+
+/** 로그인 명단, 참가체크, 실력순위 조정처럼 "지금 활동 중인 회원"만 보여줘야 하는
+ *  화면에서 쓴다. 탈퇴(비활성화)한 회원은 제외된다 */
+export async function listActiveMembers(): Promise<Member[]> {
+  const members = await listMembers();
+  return members.filter((m) => m.is_active);
 }
 
 export async function getMember(id: string): Promise<Member | null> {

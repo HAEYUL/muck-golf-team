@@ -19,7 +19,9 @@ import {
   createAnnouncementAction,
   deleteAnnouncementAction,
   deleteMemberAction,
+  promoteGuestToMemberAction,
   toggleAdminAction,
+  toggleMemberActiveAction,
   updateMemberAction,
   updateSkillRanksAction,
 } from "./actions";
@@ -40,7 +42,7 @@ export default async function AdminPage() {
   const upcomingRounds = rounds.filter((r) => r.status !== "완료");
 
   const membersBySkill = members
-    .filter((m) => !m.is_guest)
+    .filter((m) => !m.is_guest && m.is_active)
     .sort((a, b) => {
       const avgA = averageByMember[a.id] ?? Infinity;
       const avgB = averageByMember[b.id] ?? Infinity;
@@ -264,8 +266,10 @@ export default async function AdminPage() {
       <section className="card flex flex-col gap-3">
         <h2 className="text-lg font-bold">회원 관리</h2>
         <p className="text-sm text-foreground/60">
-          이름·성별을 고치거나, 중복 게스트 등 필요없는 회원을 삭제할 수 있어요. 삭제하면 그
-          회원의 참가체크·스코어·조편성 기록도 함께 사라지니 신중하게 사용해주세요.
+          이름·성별을 고치거나, 게스트를 정회원으로 전환할 수 있어요. 정회원이 탈퇴하면
+          「탈퇴 처리」를 눌러주세요 — 로그인 명단·참가체크에서만 빠지고 과거 기록은 그대로
+          남아요. 「삭제」는 완전히 지우는 것이라 참가체크·스코어·조편성 기록도 함께
+          사라지니, 중복 등록된 게스트처럼 정말 필요없는 회원에게만 사용해주세요.
         </p>
         <div className="flex flex-col gap-2">
           {members.map((m) => (
@@ -291,11 +295,37 @@ export default async function AdminPage() {
                   저장
                 </button>
               </form>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <span className="text-xs text-foreground/50">
                   {m.is_guest ? "게스트" : "정회원"}
+                  {!m.is_active && <span className="ml-1 text-danger">· 비활성</span>}
                 </span>
-                <DeleteMemberButton memberId={m.id} label={m.name} action={deleteMemberAction} />
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {m.is_guest && (
+                    <form action={promoteGuestToMemberAction}>
+                      <input type="hidden" name="member_id" value={m.id} />
+                      <button
+                        type="submit"
+                        className="btn btn-secondary !px-3 !py-1.5 !text-sm"
+                      >
+                        정회원 전환
+                      </button>
+                    </form>
+                  )}
+                  {!m.is_guest && (
+                    <form action={toggleMemberActiveAction}>
+                      <input type="hidden" name="member_id" value={m.id} />
+                      <input type="hidden" name="is_active" value={(!m.is_active).toString()} />
+                      <button
+                        type="submit"
+                        className="btn btn-secondary !px-3 !py-1.5 !text-sm"
+                      >
+                        {m.is_active ? "탈퇴 처리" : "재활성화"}
+                      </button>
+                    </form>
+                  )}
+                  <DeleteMemberButton memberId={m.id} label={m.name} action={deleteMemberAction} />
+                </div>
               </div>
             </div>
           ))}
@@ -367,7 +397,7 @@ export default async function AdminPage() {
         <h2 className="text-lg font-bold">관리자 권한 관리</h2>
         <div className="flex flex-col gap-2">
           {members
-            .filter((m) => !m.is_guest)
+            .filter((m) => !m.is_guest && m.is_active)
             .map((m) => (
               <form
                 key={m.id}

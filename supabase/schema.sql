@@ -15,6 +15,9 @@ create table if not exists members (
   age_rank integer not null default 999,
   character_url text,
   is_guest boolean not null default false,
+  -- false면 탈퇴 처리된 회원. 로그인 명단/참가체크/실력순위 목록에서 제외되지만
+  -- 과거 라운딩 기록(스코어·조편성 결과 등)의 이름은 그대로 남는다
+  is_active boolean not null default true,
   is_admin boolean not null default false,
   -- 관리자만 사용. "salt:해시" 형태로 저장하며 비어있으면 비밀번호 없이 로그인 가능
   password_hash text,
