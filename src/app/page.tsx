@@ -121,7 +121,7 @@ export default async function HomePage() {
               <p className="text-sm font-extrabold text-accent">📢 알림/공지사항</p>
               <p
                 className="notice-slide-in mt-1 text-sm font-semibold text-foreground/90"
-                style={{ animationDelay: `${i * 0.3}s` }}
+                style={{ animationDelay: `${i * 0.6}s` }}
               >
                 {a.content}
               </p>

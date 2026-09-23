@@ -157,7 +157,7 @@ button.name-box:active:not(:disabled) {
 }
 
 .notice-slide-in {
-  animation: notice-slide-in 1.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: notice-slide-in 4s ease-out both;
 }
 
 /* 라운딩 진행 단계: 현재 단계가 심장 뛰듯 커졌다 작아진다 */
