@@ -143,3 +143,48 @@ button.name-box:active:not(:disabled) {
   transform: scale(0.95);
   opacity: 0.8;
 }
+
+/* 공지 내용: 오른쪽 끝에서 들어와 제자리에 멈춘다 (한 번만) */
+@keyframes notice-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.notice-slide-in {
+  animation: notice-slide-in 1.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 라운딩 진행 단계: 현재 단계가 심장 뛰듯 커졌다 작아진다 */
+@keyframes heartbeat {
+  0%,
+  40%,
+  100% {
+    transform: scale(1);
+  }
+  10% {
+    transform: scale(1.22);
+  }
+  20% {
+    transform: scale(1.05);
+  }
+  30% {
+    transform: scale(1.18);
+  }
+}
+
+.heartbeat {
+  animation: heartbeat 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-slide-in,
+  .heartbeat {
+    animation: none;
+  }
+}
