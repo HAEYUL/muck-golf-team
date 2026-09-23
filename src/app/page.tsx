@@ -113,13 +113,18 @@ export default async function HomePage() {
 
       {announcements.length > 0 && (
         <section className="flex flex-col gap-2">
-          {announcements.map((a) => (
+          {announcements.map((a, i) => (
             <div
               key={a.id}
-              className="rounded-xl border-2 border-accent bg-accent/10 px-4 py-3"
+              className="overflow-hidden rounded-xl border-2 border-accent bg-accent/10 px-4 py-3"
             >
               <p className="text-sm font-extrabold text-accent">📢 알림/공지사항</p>
-              <p className="mt-1 text-sm font-semibold text-foreground/90">{a.content}</p>
+              <p
+                className="notice-slide-in mt-1 text-sm font-semibold text-foreground/90"
+                style={{ animationDelay: `${i * 0.3}s` }}
+              >
+                {a.content}
+              </p>
             </div>
           ))}
         </section>

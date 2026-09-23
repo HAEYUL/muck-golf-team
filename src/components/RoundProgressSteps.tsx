@@ -8,11 +8,15 @@ export function RoundProgressSteps({ status }: { status: RoundStatus }) {
       {ROUND_STATUS_STEPS.map((step, idx) => {
         const done = idx <= currentIndex;
         const isLast = idx === ROUND_STATUS_STEPS.length - 1;
+        // 완료된 라운딩은 "진행 중" 단계가 없으므로 두근거리지 않는다
+        const isCurrent = idx === currentIndex && status !== "완료";
         return (
           <div key={step} className="flex flex-1 items-center last:flex-none">
             <div className="flex flex-col items-center gap-1">
               <div
-                className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold"
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                  isCurrent ? "heartbeat" : ""
+                }`}
                 style={{
                   background: done ? "var(--fairway)" : "var(--sand)",
                   color: done ? "white" : "var(--foreground)",
