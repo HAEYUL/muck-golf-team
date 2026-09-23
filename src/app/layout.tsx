@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SongMiniPlayer } from "@/components/MuckSongButtons";
 import { TouchActivation } from "@/components/TouchActivation";
 
 const geistSans = Geist({
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <div className="mx-auto w-full max-w-md flex-1 flex flex-col px-4 pb-10 pt-6">
           {children}
         </div>
+        <SongMiniPlayer />
       </body>
     </html>
   );
