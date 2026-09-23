@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import { getMemberAverageScores, listAllAnnouncements, listMembers, listRounds } from "@/lib/queries";
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
+import type { Round } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeleteRoundButton } from "@/components/DeleteRoundButton";
 import { AdminPasswordForm } from "@/components/AdminPasswordForm";
@@ -28,6 +29,42 @@ import {
 
 export const dynamic = "force-dynamic";
 
+function RoundListItem({ round: r }: { round: Round }) {
+  return (
+    <div
+      className="flex flex-col gap-2 rounded-xl border-2 px-4 py-3"
+      style={{ borderColor: r.is_published ? "var(--fairway)" : "var(--sand)" }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <Link
+          href={`/rounds/${r.id}`}
+          className="cursor-pointer transition-colors hover:text-fairway hover:underline"
+        >
+          <p className="font-bold">{formatCourseLabel(r)}</p>
+          <p className="text-sm text-foreground/60">
+            {formatDate(r.date)} · {formatTime(r.time)}
+          </p>
+        </Link>
+        <StatusBadge status={r.status} />
+      </div>
+      <div className="flex items-center gap-2">
+        <form action={publishRoundAction} className="flex-1">
+          <input type="hidden" name="round_id" value={r.id} />
+          <button
+            type="submit"
+            className={`btn w-full !py-1.5 !text-sm ${
+              r.is_published ? "btn-primary" : "btn-secondary"
+            }`}
+          >
+            {r.is_published ? "게시중 ✓" : "게시"}
+          </button>
+        </form>
+        <DeleteRoundButton roundId={r.id} label={formatCourseLabel(r)} action={deleteRoundAction} />
+      </div>
+    </div>
+  );
+}
+
 export default async function AdminPage() {
   const member = await getCurrentMember();
   if (!member) redirect("/");
@@ -40,6 +77,7 @@ export default async function AdminPage() {
     listAllAnnouncements(),
   ]);
   const upcomingRounds = rounds.filter((r) => r.status !== "완료");
+  const pastRounds = rounds.filter((r) => r.status === "완료");
 
   const membersBySkill = members
     .filter((m) => !m.is_guest && m.is_active)
@@ -178,46 +216,27 @@ export default async function AdminPage() {
         {rounds.length === 0 && (
           <p className="text-foreground/60">아직 만든 라운딩이 없어요.</p>
         )}
+        {rounds.length > 0 && upcomingRounds.length === 0 && (
+          <p className="text-foreground/60">진행중인 라운딩이 없어요.</p>
+        )}
         <div className="flex flex-col gap-2">
-          {rounds.map((r) => (
-            <div
-              key={r.id}
-              className="flex flex-col gap-2 rounded-xl border-2 px-4 py-3"
-              style={{ borderColor: r.is_published ? "var(--fairway)" : "var(--sand)" }}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <Link
-                  href={`/rounds/${r.id}`}
-                  className="cursor-pointer transition-colors hover:text-fairway hover:underline"
-                >
-                  <p className="font-bold">{formatCourseLabel(r)}</p>
-                  <p className="text-sm text-foreground/60">
-                    {formatDate(r.date)} · {formatTime(r.time)}
-                  </p>
-                </Link>
-                <StatusBadge status={r.status} />
-              </div>
-              <div className="flex items-center gap-2">
-                <form action={publishRoundAction} className="flex-1">
-                  <input type="hidden" name="round_id" value={r.id} />
-                  <button
-                    type="submit"
-                    className={`btn w-full !py-1.5 !text-sm ${
-                      r.is_published ? "btn-primary" : "btn-secondary"
-                    }`}
-                  >
-                    {r.is_published ? "게시중 ✓" : "게시"}
-                  </button>
-                </form>
-                <DeleteRoundButton
-                  roundId={r.id}
-                  label={formatCourseLabel(r)}
-                  action={deleteRoundAction}
-                />
-              </div>
-            </div>
+          {upcomingRounds.map((r) => (
+            <RoundListItem key={r.id} round={r} />
           ))}
         </div>
+
+        {pastRounds.length > 0 && (
+          <details className="rounded-xl border-2 border-sand p-3">
+            <summary className="cursor-pointer font-bold">
+              지난 라운딩 보기 ({pastRounds.length}개)
+            </summary>
+            <div className="mt-3 flex flex-col gap-2">
+              {pastRounds.map((r) => (
+                <RoundListItem key={r.id} round={r} />
+              ))}
+            </div>
+          </details>
+        )}
       </section>
 
       <section className="card flex flex-col gap-3">
