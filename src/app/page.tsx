@@ -176,6 +176,13 @@ export default async function HomePage() {
         <Link href="/guide" className="btn btn-secondary col-span-2">
           📖 앱 가이드
         </Link>
+        <p className="col-span-2 py-2 text-center text-base font-bold leading-relaxed text-fairway-dark">
+          좋은 사람, 좋은 그린, 좋은 하루
+          <br />
+          만날수록 반가운 사람들
+          <br />
+          함께라서 좋은, <span className="font-extrabold text-fairway">먹회골프</span>
+        </p>
         {member.is_admin ? (
           <Link href="/admin" className="btn btn-primary col-span-2">
             🛠 관리자 페이지
