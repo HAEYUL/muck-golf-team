@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import type { LoginState } from "@/app/actions";
+import { unlockForLogin } from "@/lib/muck-song";
 
 type MemberOption = { id: string; name: string; is_admin: boolean; has_password: boolean };
 
@@ -25,7 +26,7 @@ export function NameAutocompleteLogin({
   const needsPassword = selected?.is_admin && selected.has_password;
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} onSubmit={unlockForLogin} className="flex flex-col gap-3">
       <input
         type="text"
         inputMode="text"
