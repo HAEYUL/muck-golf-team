@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { DeleteRoundButton } from "@/components/DeleteRoundButton";
 import { AdminPasswordForm } from "@/components/AdminPasswordForm";
 import { AutoFillSkillRanksButton } from "@/components/AutoFillSkillRanksButton";
+import { DeleteMemberButton } from "@/components/DeleteMemberButton";
 import {
   createRoundAction,
   deleteRoundAction,
@@ -14,9 +15,12 @@ import {
 } from "@/app/rounds/actions";
 import {
   addGuestAction,
+  addMemberAction,
   createAnnouncementAction,
   deleteAnnouncementAction,
+  deleteMemberAction,
   toggleAdminAction,
+  updateMemberAction,
   updateSkillRanksAction,
 } from "./actions";
 
@@ -35,11 +39,13 @@ export default async function AdminPage() {
   ]);
   const upcomingRounds = rounds.filter((r) => r.status !== "완료");
 
-  const membersBySkill = [...members].sort((a, b) => {
-    const avgA = averageByMember[a.id] ?? Infinity;
-    const avgB = averageByMember[b.id] ?? Infinity;
-    return avgA - avgB;
-  });
+  const membersBySkill = members
+    .filter((m) => !m.is_guest)
+    .sort((a, b) => {
+      const avgA = averageByMember[a.id] ?? Infinity;
+      const avgB = averageByMember[b.id] ?? Infinity;
+      return avgA - avgB;
+    });
 
   return (
     <main className="flex flex-col gap-6">
@@ -256,6 +262,75 @@ export default async function AdminPage() {
       </section>
 
       <section className="card flex flex-col gap-3">
+        <h2 className="text-lg font-bold">회원 관리</h2>
+        <p className="text-sm text-foreground/60">
+          이름·성별을 고치거나, 중복 게스트 등 필요없는 회원을 삭제할 수 있어요. 삭제하면 그
+          회원의 참가체크·스코어·조편성 기록도 함께 사라지니 신중하게 사용해주세요.
+        </p>
+        <div className="flex flex-col gap-2">
+          {members.map((m) => (
+            <div key={m.id} className="flex flex-col gap-2 rounded-xl border-2 border-sand p-3">
+              <form action={updateMemberAction} className="flex items-center gap-2">
+                <input type="hidden" name="member_id" value={m.id} />
+                <input
+                  type="text"
+                  name="name"
+                  defaultValue={m.name}
+                  required
+                  className="min-w-0 flex-1 rounded-lg border-2 border-sand px-3 py-2"
+                />
+                <select
+                  name="gender"
+                  defaultValue={m.gender}
+                  className="rounded-lg border-2 border-sand px-2 py-2"
+                >
+                  <option value="남">남</option>
+                  <option value="여">여</option>
+                </select>
+                <button type="submit" className="btn btn-secondary shrink-0 !px-3 !py-2 !text-sm">
+                  저장
+                </button>
+              </form>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-foreground/50">
+                  {m.is_guest ? "게스트" : "정회원"}
+                </span>
+                <DeleteMemberButton memberId={m.id} label={m.name} action={deleteMemberAction} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <details className="rounded-xl border-2 border-sand p-3">
+          <summary className="cursor-pointer font-bold">➕ 새 회원 추가</summary>
+          <form action={addMemberAction} className="mt-3 flex flex-col gap-3">
+            <input
+              type="text"
+              name="name"
+              placeholder="이름"
+              required
+              className="rounded-xl border-2 border-sand px-4 py-3 text-lg"
+            />
+            <div className="flex gap-2">
+              <label className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-sand py-3">
+                <input type="radio" name="gender" value="남" defaultChecked /> 남
+              </label>
+              <label className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-sand py-3">
+                <input type="radio" name="gender" value="여" /> 여
+              </label>
+            </div>
+            <label className="flex items-center gap-2 text-sm font-semibold text-foreground/70">
+              <input type="checkbox" name="is_guest" value="true" />
+              게스트로 추가 (체크 안 하면 정회원으로 추가돼요)
+            </label>
+            <button type="submit" className="btn btn-primary w-full">
+              회원 추가하기
+            </button>
+          </form>
+        </details>
+      </section>
+
+      <section className="card flex flex-col gap-3">
         <h2 className="text-lg font-bold">실력 순위 (skill_rank) 조정</h2>
         <p className="text-sm text-foreground/60">
           숫자가 작을수록 실력이 높은 멤버예요. 실력 균등 모드에서 사용돼요. 개인 평균
@@ -267,7 +342,7 @@ export default async function AdminPage() {
             return (
               <div key={m.id} className="flex items-center justify-between gap-3">
                 <span className="font-semibold">
-                  {m.name} {m.is_guest && <span className="text-xs text-foreground/50">(게스트)</span>}
+                  {m.name}
                   <span className="ml-1 text-xs font-normal text-foreground/50">
                     {avg ? `평균 ${avg.toFixed(1)}타` : "기록 없음"}
                   </span>
