@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import type { LoginState } from "@/app/actions";
-import { unlockForLogin } from "@/lib/muck-song";
+import { pauseSong, unlockForLogin } from "@/lib/muck-song";
 
 type MemberOption = { id: string; name: string; is_admin: boolean; has_password: boolean };
 
@@ -22,6 +22,11 @@ export function NameAutocompleteLogin({
     const q = query.trim();
     return members.filter((m) => m.name.includes(q)).slice(0, 8);
   }, [query, members]);
+
+  // "다른 이름으로"(로그아웃)로 로그인 화면에 오면 노래도 멈춘다
+  useEffect(() => {
+    pauseSong();
+  }, []);
 
   const needsPassword = selected?.is_admin && selected.has_password;
 
