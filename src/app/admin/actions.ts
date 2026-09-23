@@ -35,6 +35,23 @@ export async function setAdminPasswordAction(
   return { success: "비밀번호가 설정됐어요. 다음 로그인부터 비밀번호를 입력해야 해요." };
 }
 
+/** 회원을 라운딩에 참가(참석)로 등록한다 */
+async function joinRound(roundId: string, memberId: string) {
+  const { error } = await getSupabaseAdmin().from("round_participants").upsert(
+    {
+      round_id: roundId,
+      member_id: memberId,
+      attending: true,
+      checked_at: new Date().toISOString(),
+    },
+    { onConflict: "round_id,member_id" }
+  );
+  if (error) throw new Error(error.message);
+  revalidatePath(`/rounds/${roundId}`);
+}
+
+/** 게스트를 추가한다. 같은 이름의 회원이 이미 있으면 새로 만들지 않고 기존 회원을 그대로 쓴다
+ * (같은 사람이 두 번 등록되어 기록이 나뉘는 것을 막기 위함) */
 export async function addGuestAction(formData: FormData) {
   await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
@@ -43,27 +60,37 @@ export async function addGuestAction(formData: FormData) {
   if (!name) throw new Error("게스트 이름을 입력해주세요.");
 
   const members = await listMembers();
-  const maxSkill = members.reduce((max, m) => Math.max(max, m.skill_rank), 0);
+  const sameName = members.filter((m) => m.name.trim() === name);
+  let memberId = (sameName.find((m) => m.is_guest) ?? sameName[0])?.id;
 
-  const { data, error } = await getSupabaseAdmin()
-    .from("members")
-    .insert({ name, gender, is_guest: true, skill_rank: maxSkill + 1 })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
+  if (!memberId) {
+    const maxSkill = members.reduce((max, m) => Math.max(max, m.skill_rank), 0);
+    const { data, error } = await getSupabaseAdmin()
+      .from("members")
+      .insert({ name, gender, is_guest: true, skill_rank: maxSkill + 1 })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    memberId = data.id as string;
+  }
 
   if (typeof roundId === "string" && roundId) {
-    await getSupabaseAdmin().from("round_participants").upsert(
-      {
-        round_id: roundId,
-        member_id: data.id,
-        attending: true,
-        checked_at: new Date().toISOString(),
-      },
-      { onConflict: "round_id,member_id" }
-    );
-    revalidatePath(`/rounds/${roundId}`);
+    await joinRound(roundId, memberId);
   }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+/** 이미 등록된 게스트를 라운딩에 참가시킨다 */
+export async function joinGuestToRoundAction(formData: FormData) {
+  await requireAdmin();
+  const memberId = String(formData.get("member_id") ?? "");
+  const roundId = String(formData.get("round_id") ?? "");
+  if (!memberId) throw new Error("참가시킬 게스트를 선택해주세요.");
+  if (!roundId) throw new Error("참가시킬 라운딩을 선택해주세요.");
+
+  await joinRound(roundId, memberId);
 
   revalidatePath("/");
   revalidatePath("/admin");

@@ -20,6 +20,7 @@ import {
   createAnnouncementAction,
   deleteAnnouncementAction,
   deleteMemberAction,
+  joinGuestToRoundAction,
   promoteGuestToMemberAction,
   toggleAdminAction,
   toggleMemberActiveAction,
@@ -78,6 +79,7 @@ export default async function AdminPage() {
   ]);
   const upcomingRounds = rounds.filter((r) => r.status !== "완료");
   const pastRounds = rounds.filter((r) => r.status === "완료");
+  const existingGuests = members.filter((m) => m.is_guest && m.is_active);
 
   const membersBySkill = members
     .filter((m) => !m.is_guest && m.is_active)
@@ -241,6 +243,9 @@ export default async function AdminPage() {
 
       <section className="card flex flex-col gap-3">
         <h2 className="text-lg font-bold">게스트 추가</h2>
+        <p className="text-sm text-foreground/60">
+          이미 등록된 이름을 입력하면 새로 만들지 않고 기존 게스트를 그대로 참가시켜요.
+        </p>
         <form action={addGuestAction} className="flex flex-col gap-3">
           <input
             type="text"
@@ -281,6 +286,51 @@ export default async function AdminPage() {
           </button>
         </form>
       </section>
+
+      {existingGuests.length > 0 && upcomingRounds.length > 0 && (
+        <section className="card flex flex-col gap-3">
+          <h2 className="text-lg font-bold">기존 게스트 참가시키기</h2>
+          <p className="text-sm text-foreground/60">
+            전에 왔던 게스트를 다시 등록하지 않고 라운딩에 바로 참가시켜요. 기록이 한 사람으로
+            계속 이어져요.
+          </p>
+          <form action={joinGuestToRoundAction} className="flex flex-col gap-3">
+            <select
+              name="member_id"
+              required
+              defaultValue=""
+              className="rounded-xl border-2 border-sand px-4 py-3 text-lg"
+            >
+              <option value="" disabled>
+                게스트 선택
+              </option>
+              {existingGuests.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name} ({m.gender})
+                </option>
+              ))}
+            </select>
+            <select
+              name="round_id"
+              required
+              defaultValue=""
+              className="rounded-xl border-2 border-sand px-4 py-3 text-lg"
+            >
+              <option value="" disabled>
+                라운딩 선택
+              </option>
+              {upcomingRounds.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {formatDate(r.date)} {r.golf_course}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className="btn btn-primary w-full">
+              참가시키기
+            </button>
+          </form>
+        </section>
+      )}
 
       <section className="card flex flex-col gap-3">
         <h2 className="text-lg font-bold">회원 관리</h2>
