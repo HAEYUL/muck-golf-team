@@ -69,6 +69,57 @@ export async function addGuestAction(formData: FormData) {
   revalidatePath("/admin");
 }
 
+/** 정회원/게스트 구분 없이 새 회원을 등록한다 */
+export async function addMemberAction(formData: FormData) {
+  await requireAdmin();
+  const name = String(formData.get("name") ?? "").trim();
+  const gender = (String(formData.get("gender") ?? "남") as Gender) || "남";
+  const isGuest = formData.get("is_guest") === "true";
+  if (!name) throw new Error("이름을 입력해주세요.");
+
+  const { error } = await getSupabaseAdmin()
+    .from("members")
+    .insert({ name, gender, is_guest: isGuest, skill_rank: 99 });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+/** 회원 이름/성별을 수정한다 (예: 중복 게스트 이름 정리, 오타 수정) */
+export async function updateMemberAction(formData: FormData) {
+  await requireAdmin();
+  const memberId = String(formData.get("member_id") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const gender = (String(formData.get("gender") ?? "남") as Gender) || "남";
+  if (!memberId || !name) throw new Error("이름을 입력해주세요.");
+
+  const { error } = await getSupabaseAdmin()
+    .from("members")
+    .update({ name, gender })
+    .eq("id", memberId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
+/** 회원을 삭제한다. 참가체크·스코어·조편성 기록도 함께 삭제된다(DB의 on delete cascade) */
+export async function deleteMemberAction(formData: FormData) {
+  const admin = await requireAdmin();
+  const memberId = String(formData.get("member_id") ?? "");
+  if (!memberId) throw new Error("삭제할 회원 정보가 없어요.");
+  if (memberId === admin.id) {
+    throw new Error("본인 계정은 삭제할 수 없어요.");
+  }
+
+  const { error } = await getSupabaseAdmin().from("members").delete().eq("id", memberId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
 export async function updateSkillRanksAction(formData: FormData) {
   await requireAdmin();
   const supabase = getSupabaseAdmin();
