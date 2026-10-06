@@ -6,6 +6,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin, requireMember } from "@/lib/session";
 import { assignTeams, teamsToRecord } from "@/lib/team-assignment";
 import {
+  getRecentTeammateWeights,
   getRound,
   listMembers,
   listParticipants,
@@ -198,7 +199,9 @@ export async function createTeamAssignmentAction(formData: FormData) {
   const allMembers = await listMembers();
   const attendingMembers = allMembers.filter((m) => attendingIds.has(m.id));
 
-  const teams = assignTeams(attendingMembers, mode);
+  const recentTeammates =
+    mode === "avoid_recent" ? await getRecentTeammateWeights(roundId) : undefined;
+  const teams = assignTeams(attendingMembers, mode, { recentTeammates });
   const previousAssignments = await listTeamAssignments(roundId);
   const nextAttemptNo =
     previousAssignments.length > 0

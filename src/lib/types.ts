@@ -10,6 +10,9 @@ export type TeamMode =
   | "couples_split"
   | "gender_balance"
   | "skill_balance"
+  | "gender_split"
+  | "skill_gender_balance"
+  | "avoid_recent"
   | "manual";
 
 export const TEAM_MODE_LABEL: Record<TeamMode, string> = {
@@ -18,6 +21,9 @@ export const TEAM_MODE_LABEL: Record<TeamMode, string> = {
   couples_split: "부부 갈라놓기",
   gender_balance: "남녀 균등",
   skill_balance: "실력 균등",
+  gender_split: "남자팀·여자팀·혼성팀",
+  skill_gender_balance: "실력 + 남녀 균등",
+  avoid_recent: "지난번 같은 조 피하기",
   manual: "수동 입력",
 };
 
@@ -27,6 +33,10 @@ export const TEAM_MODE_DESCRIPTION: Record<TeamMode, string> = {
   couples_split: "부부(커플)는 항상 다른 팀으로 배정해요.",
   gender_balance: "각 팀의 남녀 비율을 최대한 균등하게 배분해요.",
   skill_balance: "실력 순위가 각 팀에 고르게 섞이도록 배분해요.",
+  gender_split:
+    "남자팀, 여자팀을 먼저 만들고 남은 인원은 혼성팀으로 묶어요. 한 팀을 채울 만큼 인원이 안 되는 성별은 혼성팀으로 들어가요.",
+  skill_gender_balance: "남녀 비율과 팀별 평균 실력을 둘 다 최대한 고르게 맞춰요.",
+  avoid_recent: "최근 3번의 라운딩에서 같은 팀이었던 사람끼리는 최대한 다른 팀으로 배정해요.",
   manual: "관리자가 팀 명단을 직접 입력했어요.",
 };
 

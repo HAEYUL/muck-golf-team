@@ -40,6 +40,9 @@ const MODES: TeamMode[] = [
   "couples_split",
   "gender_balance",
   "skill_balance",
+  "gender_split",
+  "skill_gender_balance",
+  "avoid_recent",
 ];
 
 export default async function RoundDetailPage({
