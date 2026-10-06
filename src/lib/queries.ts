@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseAdmin } from "./supabase-admin";
+import { pairKey } from "./team-assignment";
 import type {
   Announcement,
   Member,
@@ -116,6 +117,58 @@ export async function listTeamAssignments(
     .order("attempt_no", { ascending: true });
   if (error) throw error;
   return (data ?? []) as TeamAssignment[];
+}
+
+/**
+ * "지난번 같은 조 피하기"용: 이 라운딩보다 앞선 최근 라운딩(최대 roundLimit개)의
+ * 최종 팀 편성을 보고, 같은 팀이었던 두 사람마다 가중치를 매긴다.
+ * 가장 최근 라운딩일수록 가중치가 크다 (3개면 3, 2, 1).
+ */
+export async function getRecentTeammateWeights(
+  roundId: string,
+  roundLimit = 3
+): Promise<Map<string, number>> {
+  const round = await getRound(roundId);
+  if (!round) return new Map();
+
+  const { data, error } = await getSupabaseAdmin()
+    .from("team_assignments")
+    .select("round_id, attempt_no, teams, rounds!inner(date, time)")
+    .neq("round_id", roundId)
+    .lte("rounds.date", round.date);
+  if (error) throw error;
+
+  type Row = {
+    round_id: string;
+    attempt_no: number;
+    teams: Record<string, string[]>;
+    rounds: { date: string; time: string };
+  };
+  const latestByRound = new Map<string, Row>();
+  for (const row of (data ?? []) as unknown as Row[]) {
+    const prev = latestByRound.get(row.round_id);
+    if (!prev || row.attempt_no > prev.attempt_no) latestByRound.set(row.round_id, row);
+  }
+
+  const recent = [...latestByRound.values()]
+    .sort((a, b) =>
+      `${b.rounds.date} ${b.rounds.time}`.localeCompare(`${a.rounds.date} ${a.rounds.time}`)
+    )
+    .slice(0, roundLimit);
+
+  const weights = new Map<string, number>();
+  recent.forEach((row, idx) => {
+    const weight = roundLimit - idx;
+    for (const ids of Object.values(row.teams)) {
+      for (let i = 0; i < ids.length; i++) {
+        for (let j = i + 1; j < ids.length; j++) {
+          const key = pairKey(ids[i], ids[j]);
+          weights.set(key, (weights.get(key) ?? 0) + weight);
+        }
+      }
+    }
+  });
+  return weights;
 }
 
 export async function listTeamReveals(
