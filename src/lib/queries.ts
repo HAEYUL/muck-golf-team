@@ -186,16 +186,25 @@ export async function listAllAnnouncements(): Promise<Announcement[]> {
   const { data, error } = await getSupabaseAdmin()
     .from("announcements")
     .select("*")
-    .order("start_date", { ascending: false });
+    .order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as Announcement[];
 }
 
-/** 오늘 날짜가 start_date~end_date 사이인 공지사항만 */
-export async function listActiveAnnouncements(): Promise<Announcement[]> {
-  const all = await listAllAnnouncements();
+/**
+ * 가장 최근에 등록한 공지 하나만 "현재 공지"이고, 나머지는 모두 지난 공지(이력)다.
+ * 현재 공지는 오늘 날짜가 start_date~end_date 사이일 때만 홈 화면에 노출된다.
+ */
+export async function getAnnouncementBoard(): Promise<{
+  current: Announcement | null;
+  active: Announcement | null;
+  history: Announcement[];
+}> {
+  const [current = null, ...history] = await listAllAnnouncements();
   const today = new Date().toISOString().slice(0, 10);
-  return all.filter((a) => a.start_date <= today && a.end_date >= today);
+  const active =
+    current && current.start_date <= today && current.end_date >= today ? current : null;
+  return { current, active, history };
 }
 
 export async function listMemberScoreHistory(memberId: string) {

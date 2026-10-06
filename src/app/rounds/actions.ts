@@ -82,6 +82,32 @@ export async function createRoundAction(formData: FormData) {
   redirect(`/rounds/${data.id}`);
 }
 
+/** 관리자가 이미 만든 라운딩의 날짜/시간/골프장/코스명을 수정한다 */
+export async function updateRoundInfoAction(formData: FormData) {
+  await requireAdmin();
+  const roundId = String(formData.get("round_id") ?? "");
+  const date = String(formData.get("date") ?? "");
+  const time = String(formData.get("time") ?? "");
+  const golfCourse = String(formData.get("golf_course") ?? "").trim();
+  const course = String(formData.get("course") ?? "").trim();
+  if (!roundId) throw new Error("수정할 라운딩 정보가 없어요.");
+  if (!date || !time || !golfCourse) {
+    throw new Error("날짜, 시간, 골프장명을 모두 입력해주세요.");
+  }
+
+  const { error } = await getSupabaseAdmin()
+    .from("rounds")
+    .update({ date, time, golf_course: golfCourse, course })
+    .eq("id", roundId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/memories");
+  revalidatePath(`/rounds/${roundId}`);
+  redirect(`/rounds/${roundId}`);
+}
+
 export async function rsvpAction(formData: FormData) {
   const currentMember = await requireMember();
   const roundId = String(formData.get("round_id") ?? "");
