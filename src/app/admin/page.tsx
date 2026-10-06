@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
-import { getMemberAverageScores, listAllAnnouncements, listMembers, listRounds } from "@/lib/queries";
+import { getAnnouncementBoard, getMemberAverageScores, listMembers, listRounds } from "@/lib/queries";
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import type { Round } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -71,11 +71,11 @@ export default async function AdminPage() {
   if (!member) redirect("/");
   if (!member.is_admin) redirect("/");
 
-  const [members, rounds, averageByMember, announcements] = await Promise.all([
+  const [members, rounds, averageByMember, announcementBoard] = await Promise.all([
     listMembers(),
     listRounds(),
     getMemberAverageScores(),
-    listAllAnnouncements(),
+    getAnnouncementBoard(),
   ]);
   const upcomingRounds = rounds.filter((r) => r.status !== "완료");
   const pastRounds = rounds.filter((r) => r.status === "완료");
@@ -101,7 +101,8 @@ export default async function AdminPage() {
       <section className="card flex flex-col gap-3">
         <h2 className="text-lg font-bold">📢 공지사항</h2>
         <p className="text-sm text-foreground/60">
-          지정한 기간 동안만 홈 화면 이름 아래에 노출돼요. 기간이 지나면 자동으로 사라져요.
+          새로 등록하면 바로 그 공지가 홈 화면 이름 아래에 노출되고, 이전 공지는 &quot;지난
+          공지&quot;로 보관돼요. 지정한 기간이 지나면 홈 화면에서 자동으로 사라져요.
         </p>
         <form action={createAnnouncementAction} className="flex flex-col gap-3">
           <textarea
@@ -136,32 +137,62 @@ export default async function AdminPage() {
           </button>
         </form>
 
-        {announcements.length > 0 && (
-          <div className="flex flex-col gap-2">
-            {announcements.map((a) => (
-              <div
-                key={a.id}
-                className="flex items-start justify-between gap-2 rounded-lg bg-sand/30 px-3 py-2"
-              >
-                <div>
-                  <p className="text-sm text-foreground/90">{a.content}</p>
-                  <p className="mt-1 text-xs text-foreground/50">
-                    {formatDate(a.start_date)} ~ {formatDate(a.end_date)}
-                  </p>
-                </div>
-                <form action={deleteAnnouncementAction}>
-                  <input type="hidden" name="announcement_id" value={a.id} />
-                  <button
-                    type="submit"
-                    className="shrink-0 text-xs font-semibold text-danger"
-                    aria-label="공지사항 삭제"
-                  >
-                    삭제
-                  </button>
-                </form>
+        {announcementBoard.current && (
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-semibold text-foreground/70">현재 공지</p>
+            <div className="flex items-start justify-between gap-2 rounded-lg bg-accent/10 px-3 py-2">
+              <div>
+                <p className="text-sm text-foreground/90">{announcementBoard.current.content}</p>
+                <p className="mt-1 text-xs text-foreground/50">
+                  {formatDate(announcementBoard.current.start_date)} ~{" "}
+                  {formatDate(announcementBoard.current.end_date)}
+                </p>
               </div>
-            ))}
+              <form action={deleteAnnouncementAction}>
+                <input type="hidden" name="announcement_id" value={announcementBoard.current.id} />
+                <button
+                  type="submit"
+                  className="shrink-0 text-xs font-semibold text-danger"
+                  aria-label="공지사항 삭제"
+                >
+                  삭제
+                </button>
+              </form>
+            </div>
           </div>
+        )}
+
+        {announcementBoard.history.length > 0 && (
+          <details className="rounded-xl border-2 border-sand p-3">
+            <summary className="cursor-pointer font-semibold text-foreground/70">
+              지난 공지 보기 ({announcementBoard.history.length}개)
+            </summary>
+            <div className="mt-3 flex flex-col gap-2">
+              {announcementBoard.history.map((a) => (
+                <div
+                  key={a.id}
+                  className="flex items-start justify-between gap-2 rounded-lg bg-sand/30 px-3 py-2"
+                >
+                  <div>
+                    <p className="text-sm text-foreground/90">{a.content}</p>
+                    <p className="mt-1 text-xs text-foreground/50">
+                      {formatDate(a.start_date)} ~ {formatDate(a.end_date)}
+                    </p>
+                  </div>
+                  <form action={deleteAnnouncementAction}>
+                    <input type="hidden" name="announcement_id" value={a.id} />
+                    <button
+                      type="submit"
+                      className="shrink-0 text-xs font-semibold text-danger"
+                      aria-label="공지사항 삭제"
+                    >
+                      삭제
+                    </button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          </details>
         )}
       </section>
 

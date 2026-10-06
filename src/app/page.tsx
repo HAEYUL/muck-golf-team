@@ -3,7 +3,7 @@ import { getCurrentMember } from "@/lib/session";
 import {
   getActiveRound,
   getLatestTeamAssignment,
-  listActiveAnnouncements,
+  getAnnouncementBoard,
   listMembers,
   listParticipants,
   listScores,
@@ -18,6 +18,7 @@ import { TeamResultsList } from "@/components/TeamResultsList";
 import { ScoreRankedList } from "@/components/ScoreRankedList";
 import { AddToHomeScreenButton } from "@/components/AddToHomeScreenButton";
 import { getCharacterUrl } from "@/lib/characters";
+import { formatDate } from "@/lib/format";
 import { SongReplayButton, SongToggleButton } from "@/components/MuckSongButtons";
 
 export const dynamic = "force-dynamic";
@@ -54,7 +55,7 @@ export default async function HomePage() {
   const memberMap = new Map(members.map((m) => [m.id, m]));
   const getName = (id: string) => memberMap.get(id)?.name ?? "?";
 
-  const announcements = await listActiveAnnouncements();
+  const { active: announcement, history: pastAnnouncements } = await getAnnouncementBoard();
   const activeRound = await getActiveRound();
   const participants = activeRound
     ? await listParticipants(activeRound.id)
@@ -111,22 +112,33 @@ export default async function HomePage() {
         </form>
       </header>
 
-      {announcements.length > 0 && (
+      {(announcement || pastAnnouncements.length > 0) && (
         <section className="flex flex-col gap-2">
-          {announcements.map((a, i) => (
-            <div
-              key={a.id}
-              className="overflow-hidden rounded-xl border-2 border-accent bg-accent/10 px-4 py-3"
-            >
+          {announcement && (
+            <div className="overflow-hidden rounded-xl border-2 border-accent bg-accent/10 px-4 py-3">
               <p className="text-sm font-extrabold text-accent">📢 알림/공지사항</p>
-              <p
-                className="notice-slide-in mt-1 text-sm font-semibold text-foreground/90"
-                style={{ animationDelay: `${i * 0.6}s` }}
-              >
-                {a.content}
+              <p className="notice-slide-in mt-1 text-sm font-semibold text-foreground/90">
+                {announcement.content}
               </p>
             </div>
-          ))}
+          )}
+          {pastAnnouncements.length > 0 && (
+            <details className="rounded-xl border-2 border-sand px-4 py-2">
+              <summary className="cursor-pointer text-sm font-semibold text-foreground/60">
+                지난 공지 보기 ({pastAnnouncements.length}개)
+              </summary>
+              <ul className="mt-2 flex flex-col gap-2">
+                {pastAnnouncements.map((a) => (
+                  <li key={a.id} className="rounded-lg bg-sand/30 px-3 py-2">
+                    <p className="text-sm text-foreground/80">{a.content}</p>
+                    <p className="mt-1 text-xs text-foreground/50">
+                      {formatDate(a.start_date)} ~ {formatDate(a.end_date)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
         </section>
       )}
 
