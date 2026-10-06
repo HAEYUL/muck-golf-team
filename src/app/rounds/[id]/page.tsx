@@ -29,6 +29,7 @@ import {
   reopenRsvpAction,
   revertRoundStatusAction,
   rsvpAction,
+  updateRoundInfoAction,
 } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -100,6 +101,61 @@ export default async function RoundDetailPage({
             {formatDate(round.date)} · {formatTime(round.time)}
           </p>
         </div>
+        {member.is_admin && (
+          <details className="rounded-xl border-2 border-sand p-3">
+            <summary className="cursor-pointer text-sm font-semibold text-fairway">
+              ✏️ 날짜·시간·골프장 수정
+            </summary>
+            <form action={updateRoundInfoAction} className="mt-3 flex flex-col gap-3">
+              <input type="hidden" name="round_id" value={round.id} />
+              <label className="flex flex-col gap-1">
+                <span className="text-sm font-semibold text-foreground/70">날짜</span>
+                <input
+                  type="date"
+                  name="date"
+                  required
+                  defaultValue={round.date}
+                  className="rounded-xl border-2 border-sand px-4 py-3 text-lg"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-sm font-semibold text-foreground/70">시간</span>
+                <input
+                  type="time"
+                  name="time"
+                  required
+                  defaultValue={round.time.slice(0, 5)}
+                  className="rounded-xl border-2 border-sand px-4 py-3 text-lg"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-sm font-semibold text-foreground/70">골프장</span>
+                <input
+                  type="text"
+                  name="golf_course"
+                  required
+                  defaultValue={round.golf_course}
+                  className="rounded-xl border-2 border-sand px-4 py-3 text-lg"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-sm font-semibold text-foreground/70">
+                  코스명 (선택)
+                </span>
+                <input
+                  type="text"
+                  name="course"
+                  defaultValue={round.course ?? ""}
+                  placeholder="없으면 비워두세요"
+                  className="rounded-xl border-2 border-sand px-4 py-3 text-lg"
+                />
+              </label>
+              <button type="submit" className="btn btn-primary w-full">
+                수정 저장하기
+              </button>
+            </form>
+          </details>
+        )}
         <RoundProgressSteps status={round.status} />
         {member.is_admin && round.status !== "모집중" && round.status !== "완료" && (
           <form action={revertRoundStatusAction}>
