@@ -11,6 +11,7 @@ import { listRecordPinMemberIds } from "@/lib/records";
 import { AdminPasswordForm } from "@/components/AdminPasswordForm";
 import { AutoFillSkillRanksButton } from "@/components/AutoFillSkillRanksButton";
 import { DeleteMemberButton } from "@/components/DeleteMemberButton";
+import { AnnouncementItem } from "@/components/AnnouncementItem";
 import {
   createRoundAction,
   deleteRoundAction,
@@ -27,6 +28,7 @@ import {
   resetRecordPinAction,
   toggleAdminAction,
   toggleMemberActiveAction,
+  updateAnnouncementAction,
   updateMemberAction,
   updateSkillRanksAction,
 } from "./actions";
@@ -106,7 +108,8 @@ export default async function AdminPage() {
         <h2 className="text-lg font-bold">📢 공지사항</h2>
         <p className="text-sm text-foreground/60">
           새로 등록하면 바로 그 공지가 홈 화면 이름 아래에 노출되고, 이전 공지는 &quot;지난
-          공지&quot;로 보관돼요. 지정한 기간이 지나면 홈 화면에서 자동으로 사라져요.
+          공지&quot;로 보관돼요. 지정한 기간이 지나면 홈 화면에서 자동으로 사라져요. 지난 공지의
+          &quot;재공지&quot;를 누르면 같은 내용으로 다시 현재 공지가 돼요.
         </p>
         <form action={createAnnouncementAction} className="flex flex-col gap-3">
           <textarea
@@ -144,25 +147,13 @@ export default async function AdminPage() {
         {announcementBoard.current && (
           <div className="flex flex-col gap-1">
             <p className="text-sm font-semibold text-foreground/70">현재 공지</p>
-            <div className="flex items-start justify-between gap-2 rounded-lg bg-accent/10 px-3 py-2">
-              <div>
-                <p className="text-sm text-foreground/90">{announcementBoard.current.content}</p>
-                <p className="mt-1 text-xs text-foreground/50">
-                  {formatDate(announcementBoard.current.start_date)} ~{" "}
-                  {formatDate(announcementBoard.current.end_date)}
-                </p>
-              </div>
-              <form action={deleteAnnouncementAction}>
-                <input type="hidden" name="announcement_id" value={announcementBoard.current.id} />
-                <button
-                  type="submit"
-                  className="shrink-0 text-xs font-semibold text-danger"
-                  aria-label="공지사항 삭제"
-                >
-                  삭제
-                </button>
-              </form>
-            </div>
+            <AnnouncementItem
+              announcement={announcementBoard.current}
+              isCurrent
+              updateAction={updateAnnouncementAction}
+              repostAction={createAnnouncementAction}
+              deleteAction={deleteAnnouncementAction}
+            />
           </div>
         )}
 
@@ -173,27 +164,14 @@ export default async function AdminPage() {
             </summary>
             <div className="mt-3 flex flex-col gap-2">
               {announcementBoard.history.map((a) => (
-                <div
+                <AnnouncementItem
                   key={a.id}
-                  className="flex items-start justify-between gap-2 rounded-lg bg-sand/30 px-3 py-2"
-                >
-                  <div>
-                    <p className="text-sm text-foreground/90">{a.content}</p>
-                    <p className="mt-1 text-xs text-foreground/50">
-                      {formatDate(a.start_date)} ~ {formatDate(a.end_date)}
-                    </p>
-                  </div>
-                  <form action={deleteAnnouncementAction}>
-                    <input type="hidden" name="announcement_id" value={a.id} />
-                    <button
-                      type="submit"
-                      className="shrink-0 text-xs font-semibold text-danger"
-                      aria-label="공지사항 삭제"
-                    >
-                      삭제
-                    </button>
-                  </form>
-                </div>
+                  announcement={a}
+                  isCurrent={false}
+                  updateAction={updateAnnouncementAction}
+                  repostAction={createAnnouncementAction}
+                  deleteAction={deleteAnnouncementAction}
+                />
               ))}
             </div>
           </details>
