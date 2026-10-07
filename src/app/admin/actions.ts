@@ -255,3 +255,15 @@ export async function deleteAnnouncementAction(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/admin");
 }
+
+/** 회원이 기록장 비밀번호를 잊었을 때 관리자가 초기화한다. 개인 기록은 지워지지 않고, 회원이 새 비밀번호를 다시 정한다 */
+export async function resetRecordPinAction(formData: FormData) {
+  await requireAdmin();
+  const memberId = String(formData.get("member_id") ?? "");
+  const { error } = await getSupabaseAdmin()
+    .from("member_record_pins")
+    .delete()
+    .eq("member_id", memberId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin");
+}

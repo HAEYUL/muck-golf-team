@@ -10,6 +10,8 @@
   --accent: #b45309;
   --card: #ffffff;
   --danger: #b3261e;
+  --chart-muck: #2f7a4f;
+  --chart-personal: #b45309;
 }
 
 @theme inline {
@@ -31,6 +33,8 @@
     --background: #14201a;
     --foreground: #eef3ec;
     --card: #1c2b23;
+    --chart-muck: #4fa874;
+    --chart-personal: #d06a22;
   }
 }
 

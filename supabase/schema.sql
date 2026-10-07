@@ -123,6 +123,35 @@ create index if not exists idx_team_assignments_round on team_assignments (round
 create index if not exists idx_round_scores_round on round_scores (round_id);
 create index if not exists idx_round_scores_member on round_scores (member_id);
 
+-- 📒 내 골프 기록장 (개인 라운딩 기록 + 기록장 비밀번호)
+create table if not exists personal_rounds (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references members(id) on delete cascade,
+  date date not null,
+  time time,
+  golf_course text not null,
+  course text not null default '',
+  score integer not null,
+  -- 함께 친 먹회 회원(members.id)과 외부 동반자 이름
+  companion_member_ids uuid[] not null default '{}',
+  companion_names text[] not null default '{}',
+  memo text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_personal_rounds_member on personal_rounds (member_id, date desc);
+
+-- 기록장 비밀번호. "salt:해시" 형태로만 저장하고, 연속으로 틀리면 잠시 잠근다.
+create table if not exists member_record_pins (
+  member_id uuid primary key references members(id) on delete cascade,
+  pin_hash text not null,
+  failed_count integer not null default 0,
+  locked_until timestamptz,
+  updated_at timestamptz not null default now()
+);
+
+
 -- 이 앱은 서버(Service Role Key)에서만 데이터베이스에 접근한다.
 -- RLS를 켜두면 실수로 노출된 anon/authenticated 키로는 데이터에 접근할 수 없고,
 -- 서버 액션에서 쓰는 service_role 키는 RLS를 우회하므로 정상 동작한다.
@@ -135,3 +164,5 @@ alter table round_results enable row level security;
 alter table round_suggestions enable row level security;
 alter table team_reveals enable row level security;
 alter table announcements enable row level security;
+alter table personal_rounds enable row level security;
+alter table member_record_pins enable row level security;
