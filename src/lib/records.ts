@@ -159,6 +159,10 @@ export async function listGolfRecords(memberId: string): Promise<GolfRecordEntry
 /** 관리자 화면용: 기록장 비밀번호를 정해 둔 회원 id 목록 */
 export async function listRecordPinMemberIds(): Promise<Set<string>> {
   const { data, error } = await getSupabaseAdmin().from("member_record_pins").select("member_id");
-  if (error) throw error;
+  if (error) {
+    // 0008 마이그레이션을 아직 실행하지 않았더라도 관리자 페이지는 열리도록 한다
+    console.error("기록장 비밀번호 목록을 불러오지 못했어요:", error.message);
+    return new Set();
+  }
   return new Set((data ?? []).map((row: { member_id: string }) => row.member_id));
 }
