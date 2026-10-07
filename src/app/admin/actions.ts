@@ -243,6 +243,31 @@ export async function createAnnouncementAction(formData: FormData) {
   revalidatePath("/admin");
 }
 
+/** 공지 내용·기간만 고치고, 현재/지난 공지 순서는 그대로 둔다 */
+export async function updateAnnouncementAction(formData: FormData) {
+  await requireAdmin();
+  const announcementId = String(formData.get("announcement_id") ?? "");
+  const content = String(formData.get("content") ?? "").trim();
+  const startDate = String(formData.get("start_date") ?? "");
+  const endDate = String(formData.get("end_date") ?? "");
+
+  if (!announcementId || !content || !startDate || !endDate) {
+    throw new Error("내용과 노출 기간을 모두 입력해주세요.");
+  }
+  if (startDate > endDate) {
+    throw new Error("종료일이 시작일보다 빠를 수 없어요.");
+  }
+
+  const { error } = await getSupabaseAdmin()
+    .from("announcements")
+    .update({ content, start_date: startDate, end_date: endDate })
+    .eq("id", announcementId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
 export async function deleteAnnouncementAction(formData: FormData) {
   await requireAdmin();
   const announcementId = String(formData.get("announcement_id") ?? "");
