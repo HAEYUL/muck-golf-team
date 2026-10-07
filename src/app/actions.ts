@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { clearSessionMemberId, setSessionMemberId } from "@/lib/session";
 import { verifyPassword } from "@/lib/password";
+import { clearRecordsUnlocked } from "@/lib/records";
 import type { Member } from "@/lib/types";
 
 export type LoginState = { error: string } | null;
@@ -36,6 +37,7 @@ export async function loginAction(
     }
   }
 
+  await clearRecordsUnlocked();
   await setSessionMemberId(member.id);
   revalidatePath("/");
   redirect("/");
@@ -43,6 +45,7 @@ export async function loginAction(
 
 export async function logoutAction() {
   await clearSessionMemberId();
+  await clearRecordsUnlocked();
   revalidatePath("/");
   redirect("/");
 }

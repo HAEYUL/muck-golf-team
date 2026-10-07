@@ -46,6 +46,10 @@ export default async function MePage() {
         </div>
       </section>
 
+      <Link href="/me/records" className="btn btn-primary w-full">
+        📒 내 골프 기록장 (먹회골프 + 개인 라운딩)
+      </Link>
+
       <section className="grid grid-cols-3 gap-3 text-center">
         <div className="card">
           <p className="text-2xl font-extrabold">{count}</p>

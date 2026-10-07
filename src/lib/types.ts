@@ -137,3 +137,33 @@ export const TEAM_THEMES = [
   { no: 3, name: "3조", color: "#b45309", ball: "#fb923c" },
   { no: 4, name: "4조", color: "#7c3aed", ball: "#f472b6" },
 ] as const;
+
+/** 📒 내 골프 기록장: 회원이 직접 기록한 개인 라운딩 (먹회골프 라운딩은 round_scores에서 자동으로 가져온다) */
+export interface PersonalRound {
+  id: string;
+  member_id: string;
+  date: string; // YYYY-MM-DD
+  time: string | null; // HH:mm:ss
+  golf_course: string;
+  course: string;
+  score: number;
+  companion_member_ids: string[];
+  companion_names: string[];
+  memo: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** 기록장에 보여줄 한 줄. 먹회골프 기록과 개인 기록을 같은 모양으로 합친 것 */
+export interface GolfRecordEntry {
+  kind: "muck" | "personal";
+  /** muck이면 round_id, personal이면 personal_rounds.id */
+  id: string;
+  date: string;
+  time: string | null;
+  golf_course: string;
+  course: string;
+  score: number;
+  companions: string[];
+  memo: string;
+}

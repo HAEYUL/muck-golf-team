@@ -6,6 +6,8 @@ import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import type { Round } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeleteRoundButton } from "@/components/DeleteRoundButton";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
+import { listRecordPinMemberIds } from "@/lib/records";
 import { AdminPasswordForm } from "@/components/AdminPasswordForm";
 import { AutoFillSkillRanksButton } from "@/components/AutoFillSkillRanksButton";
 import { DeleteMemberButton } from "@/components/DeleteMemberButton";
@@ -22,6 +24,7 @@ import {
   deleteMemberAction,
   joinGuestToRoundAction,
   promoteGuestToMemberAction,
+  resetRecordPinAction,
   toggleAdminAction,
   toggleMemberActiveAction,
   updateMemberAction,
@@ -71,11 +74,12 @@ export default async function AdminPage() {
   if (!member) redirect("/");
   if (!member.is_admin) redirect("/");
 
-  const [members, rounds, averageByMember, announcementBoard] = await Promise.all([
+  const [members, rounds, averageByMember, announcementBoard, recordPinMemberIds] = await Promise.all([
     listMembers(),
     listRounds(),
     getMemberAverageScores(),
     getAnnouncementBoard(),
+    listRecordPinMemberIds(),
   ]);
   const upcomingRounds = rounds.filter((r) => r.status !== "완료");
   const pastRounds = rounds.filter((r) => r.status === "완료");
@@ -400,7 +404,16 @@ export default async function AdminPage() {
                   {m.is_guest ? "게스트" : "정회원"}
                   {!m.is_active && <span className="ml-1 text-danger">· 비활성</span>}
                 </span>
-                <div className="flex shrink-0 items-center gap-1.5">
+                <div className="flex flex-wrap items-center justify-end gap-1.5">
+                  {recordPinMemberIds.has(m.id) && (
+                    <ConfirmSubmitButton
+                      action={resetRecordPinAction}
+                      fields={{ member_id: m.id }}
+                      message={`${m.name}님의 기록장 비밀번호를 초기화할까요?\n개인 기록은 지워지지 않고, 다음에 들어갈 때 새 비밀번호를 정하게 돼요.`}
+                      label="기록장 비번 초기화"
+                      className="btn btn-secondary !px-3 !py-1.5 !text-sm"
+                    />
+                  )}
                   {m.is_guest && (
                     <form action={promoteGuestToMemberAction}>
                       <input type="hidden" name="member_id" value={m.id} />
