@@ -41,15 +41,20 @@ export async function getMember(id: string): Promise<Member | null> {
   return (data as Member | null) ?? null;
 }
 
-/** 관리자가 [게시]로 지정한, 홈 화면 맨 위에 보여줄 라운딩 하나 (없으면 null) */
-export async function getActiveRound(): Promise<Round | null> {
+/** 홈 화면에 동시에 게시할 수 있는 라운딩 최대 개수 */
+export const MAX_PUBLISHED_ROUNDS = 3;
+
+/** 관리자가 [게시]로 지정한, 홈 화면에 보여줄 라운딩들 (날짜·시간 빠른 순, 최대 3개) */
+export async function listPublishedRounds(): Promise<Round[]> {
   const { data, error } = await getSupabaseAdmin()
     .from("rounds")
     .select("*")
     .eq("is_published", true)
-    .maybeSingle();
+    .order("date", { ascending: true })
+    .order("time", { ascending: true })
+    .limit(MAX_PUBLISHED_ROUNDS);
   if (error) throw error;
-  return (data as Round | null) ?? null;
+  return (data ?? []) as Round[];
 }
 
 export async function listRounds(): Promise<Round[]> {

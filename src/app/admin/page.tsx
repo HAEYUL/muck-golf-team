@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
-import { getAnnouncementBoard, getMemberAverageScores, listMembers, listRounds } from "@/lib/queries";
+import {
+  getAnnouncementBoard,
+  getMemberAverageScores,
+  listMembers,
+  listRounds,
+  MAX_PUBLISHED_ROUNDS,
+} from "@/lib/queries";
 import { formatCourseLabel, formatDate, formatTime } from "@/lib/format";
 import type { Round } from "@/lib/types";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -35,7 +41,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function RoundListItem({ round: r }: { round: Round }) {
+function RoundListItem({ round: r, publishFull }: { round: Round; publishFull: boolean }) {
+  const publishDisabled = !r.is_published && publishFull;
   return (
     <div
       className="flex flex-col gap-2 rounded-xl border-2 px-4 py-3"
@@ -58,11 +65,16 @@ function RoundListItem({ round: r }: { round: Round }) {
           <input type="hidden" name="round_id" value={r.id} />
           <button
             type="submit"
+            disabled={publishDisabled}
             className={`btn w-full !py-1.5 !text-sm ${
               r.is_published ? "btn-primary" : "btn-secondary"
-            }`}
+            } ${publishDisabled ? "cursor-not-allowed opacity-50" : ""}`}
           >
-            {r.is_published ? "게시중 ✓" : "게시"}
+            {r.is_published
+              ? "게시중 ✓"
+              : publishDisabled
+                ? `게시 (최대 ${MAX_PUBLISHED_ROUNDS}개)`
+                : "게시"}
           </button>
         </form>
         <DeleteRoundButton roundId={r.id} label={formatCourseLabel(r)} action={deleteRoundAction} />
@@ -85,6 +97,7 @@ export default async function AdminPage() {
   ]);
   const upcomingRounds = rounds.filter((r) => r.status !== "완료");
   const pastRounds = rounds.filter((r) => r.status === "완료");
+  const publishFull = rounds.filter((r) => r.is_published).length >= MAX_PUBLISHED_ROUNDS;
   const existingGuests = members.filter((m) => m.is_guest && m.is_active);
 
   const membersBySkill = members
@@ -228,6 +241,10 @@ export default async function AdminPage() {
 
       <section className="card flex flex-col gap-3">
         <h2 className="text-lg font-bold">라운딩 목록</h2>
+        <p className="text-sm text-foreground/60">
+          [게시]한 라운딩은 홈 화면에 날짜 순으로 최대 {MAX_PUBLISHED_ROUNDS}개까지 보여요. 다시
+          누르면 게시가 내려가요.
+        </p>
         {rounds.length === 0 && (
           <p className="text-foreground/60">아직 만든 라운딩이 없어요.</p>
         )}
@@ -236,7 +253,7 @@ export default async function AdminPage() {
         )}
         <div className="flex flex-col gap-2">
           {upcomingRounds.map((r) => (
-            <RoundListItem key={r.id} round={r} />
+            <RoundListItem key={r.id} round={r} publishFull={publishFull} />
           ))}
         </div>
 
@@ -247,7 +264,7 @@ export default async function AdminPage() {
             </summary>
             <div className="mt-3 flex flex-col gap-2">
               {pastRounds.map((r) => (
-                <RoundListItem key={r.id} round={r} />
+                <RoundListItem key={r.id} round={r} publishFull={publishFull} />
               ))}
             </div>
           </details>

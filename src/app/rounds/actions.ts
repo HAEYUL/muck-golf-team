@@ -11,6 +11,7 @@ import {
   listMembers,
   listParticipants,
   listTeamAssignments,
+  MAX_PUBLISHED_ROUNDS,
 } from "@/lib/queries";
 import { ROUND_STATUS_STEPS } from "@/lib/types";
 import type { TeamMode } from "@/lib/types";
@@ -218,7 +219,7 @@ export async function createTeamAssignmentAction(formData: FormData) {
   if (error) throw new Error(error.message);
 
   // 상태는 그대로 둔다: 처음 시작이면 "조편성중"에 남아 참가자들이 각자
-  // 홈 화면에서 본인 이름을 눌러 게임에 참가해야 "확정"으로 넘어간다.
+  // 라운딩 상세 페이지에서 본인 이름을 눌러 게임에 참가해야 "확정"으로 넘어간다.
   // 이미 "확정" 상태에서 다시 뽑은 경우(재편성)에는 그대로 확정 상태 유지.
   revalidatePath("/");
   revalidatePath(`/rounds/${roundId}`);
@@ -226,7 +227,7 @@ export async function createTeamAssignmentAction(formData: FormData) {
   redirect(`/rounds/${roundId}`);
 }
 
-/** 조편성 게임: 참가자 본인이 홈 화면에서 자기 이름을 눌러 게임에 참가한다 */
+/** 조편성 게임: 참가자 본인이 라운딩 상세 페이지에서 자기 이름을 눌러 게임에 참가한다 */
 export async function revealTeamAction(formData: FormData) {
   const currentMember = await requireMember();
   const roundId = String(formData.get("round_id") ?? "");
@@ -336,7 +337,7 @@ export async function saveManualTeamsAction(formData: FormData) {
   redirect(`/rounds/${roundId}`);
 }
 
-/** 관리자가 라운딩 목록에서 홈 화면에 노출할 라운딩을 고른다 (한 번에 하나만 게시) */
+/** 관리자가 라운딩 목록에서 홈 화면에 노출할 라운딩을 고른다 (최대 3개까지 게시) */
 export async function publishRoundAction(formData: FormData) {
   await requireAdmin();
   const roundId = String(formData.get("round_id") ?? "");
@@ -352,11 +353,16 @@ export async function publishRoundAction(formData: FormData) {
       .eq("id", roundId);
     if (error) throw new Error(error.message);
   } else {
-    const { error: unpublishError } = await supabase
+    const { count, error: countError } = await supabase
       .from("rounds")
-      .update({ is_published: false })
+      .select("id", { count: "exact", head: true })
       .eq("is_published", true);
-    if (unpublishError) throw new Error(unpublishError.message);
+    if (countError) throw new Error(countError.message);
+    if ((count ?? 0) >= MAX_PUBLISHED_ROUNDS) {
+      throw new Error(
+        `라운딩은 최대 ${MAX_PUBLISHED_ROUNDS}개까지 게시할 수 있어요. 다른 라운딩의 게시를 먼저 내려주세요.`
+      );
+    }
 
     const { error } = await supabase
       .from("rounds")
