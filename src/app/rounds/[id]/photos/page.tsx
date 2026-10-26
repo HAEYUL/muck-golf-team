@@ -4,6 +4,7 @@ import { getCurrentMember } from "@/lib/session";
 import { getRound, getRoundResult } from "@/lib/queries";
 import { formatCourseLabel } from "@/lib/format";
 import { PhotoGallery } from "@/components/PhotoGallery";
+import { BackButton } from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -25,9 +26,7 @@ export default async function RoundPhotosPage({
   return (
     <main className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
-        <Link href={`/rounds/${id}`} className="text-sm font-semibold text-fairway">
-          ← 라운딩으로
-        </Link>
+        <BackButton fallbackHref={`/rounds/${id}`} />
       </header>
 
       <div>

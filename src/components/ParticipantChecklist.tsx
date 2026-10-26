@@ -1,5 +1,6 @@
 import type { Member, RoundParticipant } from "@/lib/types";
 import { rsvpAction, resetParticipationAction } from "@/app/rounds/actions";
+import { SubmitButton } from "./SubmitButton";
 
 export function ParticipantChecklist({
   members,
@@ -38,23 +39,24 @@ export function ParticipantChecklist({
                     <input type="hidden" name="round_id" value={roundId} />
                     <input type="hidden" name="member_id" value={m.id} />
                     <input type="hidden" name="attending" value="true" />
-                    <button className="btn btn-secondary !px-2 !py-1 !text-xs">O</button>
+                    <SubmitButton pendingText="" className="btn btn-secondary !px-2 !py-1 !text-xs">O</SubmitButton>
                   </form>
                   <form action={rsvpAction}>
                     <input type="hidden" name="round_id" value={roundId} />
                     <input type="hidden" name="member_id" value={m.id} />
                     <input type="hidden" name="attending" value="false" />
-                    <button className="btn btn-danger !px-2 !py-1 !text-xs">X</button>
+                    <SubmitButton pendingText="" className="btn btn-danger !px-2 !py-1 !text-xs">X</SubmitButton>
                   </form>
                   <form action={resetParticipationAction}>
                     <input type="hidden" name="round_id" value={roundId} />
                     <input type="hidden" name="member_id" value={m.id} />
-                    <button
+                    <SubmitButton
                       className="btn btn-secondary !px-2 !py-1 !text-xs"
                       aria-label="참가체크 초기화"
+                      pendingText=""
                     >
                       ↺
-                    </button>
+                    </SubmitButton>
                   </form>
                 </>
               )}

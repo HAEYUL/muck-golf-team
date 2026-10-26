@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import { getRoundResult, listCompletedRounds } from "@/lib/queries";
 import { formatCourseLabel, formatDate } from "@/lib/format";
+import { BackButton } from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +23,7 @@ export default async function MemoriesPage() {
   return (
     <main className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
-        <Link href="/" className="text-sm font-semibold text-fairway">
-          ← 홈으로
-        </Link>
+        <BackButton fallbackHref="/" />
         <h1 className="text-xl font-extrabold text-fairway-dark">📸 추억 페이지</h1>
       </header>
 
@@ -46,7 +45,7 @@ export default async function MemoriesPage() {
             <Link
               key={round.id}
               href={`/rounds/${round.id}`}
-              className="card flex flex-col gap-3 transition-transform hover:bg-sand/10 active:scale-[0.98] active:opacity-80"
+              className="card flex flex-col gap-3 hover:bg-sand/10"
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="text-lg font-extrabold text-fairway-dark">

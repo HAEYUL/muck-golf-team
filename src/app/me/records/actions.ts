@@ -148,7 +148,7 @@ export async function savePersonalRoundAction(formData: FormData) {
   }
 
   revalidatePath("/me/records");
-  redirect("/me/records");
+  // 기록 입력 화면은 저장 후 클라이언트에서 바로 전 화면으로 돌아간다 (SubmitThenBackForm)
 }
 
 export async function deletePersonalRoundAction(formData: FormData) {

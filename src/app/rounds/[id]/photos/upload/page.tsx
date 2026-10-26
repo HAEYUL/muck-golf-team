@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import { getRound } from "@/lib/queries";
 import { formatCourseLabel } from "@/lib/format";
 import { UploadRoundPhotosForm } from "@/components/UploadRoundPhotosForm";
+import { BackButton } from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +22,7 @@ export default async function UploadRoundPhotosPage({
   return (
     <main className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
-        <Link href={`/rounds/${id}/photos`} className="text-sm font-semibold text-fairway">
-          ← 추억사진으로
-        </Link>
+        <BackButton fallbackHref={`/rounds/${id}/photos`} />
       </header>
 
       <div>

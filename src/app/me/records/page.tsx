@@ -7,6 +7,7 @@ import { RecordPinForm } from "@/components/RecordPinForm";
 import { ScoreTrendChart } from "@/components/ScoreTrendChart";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { deletePersonalRoundAction, setRecordPinAction, unlockRecordsAction } from "./actions";
+import { BackButton } from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -33,9 +34,7 @@ export default async function GolfRecordsPage({
 
   const header = (
     <header className="flex items-center justify-between">
-      <Link href="/me" className="text-sm font-semibold text-fairway">
-        ← 마이페이지
-      </Link>
+      <BackButton fallbackHref="/me" />
       <h1 className="text-xl font-extrabold text-fairway-dark">📒 내 골프 기록장</h1>
     </header>
   );

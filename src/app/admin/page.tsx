@@ -38,6 +38,8 @@ import {
   updateMemberAction,
   updateSkillRanksAction,
 } from "./actions";
+import { SubmitButton } from "@/components/SubmitButton";
+import { BackButton } from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -63,19 +65,19 @@ function RoundListItem({ round: r, publishFull }: { round: Round; publishFull: b
       <div className="flex items-center gap-2">
         <form action={publishRoundAction} className="flex-1">
           <input type="hidden" name="round_id" value={r.id} />
-          <button
-            type="submit"
+          <SubmitButton
             disabled={publishDisabled}
             className={`btn w-full !py-1.5 !text-sm ${
               r.is_published ? "btn-primary" : "btn-secondary"
             } ${publishDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+            pendingText=""
           >
             {r.is_published
               ? "게시중 ✓"
               : publishDisabled
                 ? `게시 (최대 ${MAX_PUBLISHED_ROUNDS}개)`
                 : "게시"}
-          </button>
+          </SubmitButton>
         </form>
         <DeleteRoundButton roundId={r.id} label={formatCourseLabel(r)} action={deleteRoundAction} />
       </div>
@@ -112,9 +114,7 @@ export default async function AdminPage() {
     <main className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
         <h1 className="text-2xl font-extrabold text-fairway-dark">🛠 관리자 페이지</h1>
-        <Link href="/" className="text-sm font-semibold text-fairway">
-          홈으로
-        </Link>
+        <BackButton fallbackHref="/" />
       </header>
 
       <section className="card flex flex-col gap-3">
@@ -152,9 +152,9 @@ export default async function AdminPage() {
               />
             </label>
           </div>
-          <button type="submit" className="btn btn-primary w-full">
+          <SubmitButton className="btn btn-primary w-full">
             공지사항 등록하기
-          </button>
+          </SubmitButton>
         </form>
 
         {announcementBoard.current && (
@@ -233,9 +233,9 @@ export default async function AdminPage() {
               className="rounded-xl border-2 border-sand px-4 py-3 text-lg"
             />
           </label>
-          <button type="submit" className="btn btn-primary w-full">
+          <SubmitButton className="btn btn-primary w-full">
             라운딩 생성하기
-          </button>
+          </SubmitButton>
         </form>
       </section>
 
@@ -311,9 +311,9 @@ export default async function AdminPage() {
               </select>
             </label>
           )}
-          <button type="submit" className="btn btn-primary w-full">
+          <SubmitButton className="btn btn-primary w-full">
             게스트 추가하기
-          </button>
+          </SubmitButton>
         </form>
       </section>
 
@@ -355,9 +355,9 @@ export default async function AdminPage() {
                 </option>
               ))}
             </select>
-            <button type="submit" className="btn btn-primary w-full">
+            <SubmitButton className="btn btn-primary w-full">
               참가시키기
-            </button>
+            </SubmitButton>
           </form>
         </section>
       )}
@@ -390,9 +390,9 @@ export default async function AdminPage() {
                   <option value="남">남</option>
                   <option value="여">여</option>
                 </select>
-                <button type="submit" className="btn btn-secondary shrink-0 !px-3 !py-2 !text-sm">
+                <SubmitButton pendingText="" className="btn btn-secondary shrink-0 !px-3 !py-2 !text-sm">
                   저장
-                </button>
+                </SubmitButton>
               </form>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs text-foreground/50">
@@ -412,24 +412,24 @@ export default async function AdminPage() {
                   {m.is_guest && (
                     <form action={promoteGuestToMemberAction}>
                       <input type="hidden" name="member_id" value={m.id} />
-                      <button
-                        type="submit"
+                      <SubmitButton
                         className="btn btn-secondary !px-3 !py-1.5 !text-sm"
+                        pendingText=""
                       >
                         정회원 전환
-                      </button>
+                      </SubmitButton>
                     </form>
                   )}
                   {!m.is_guest && (
                     <form action={toggleMemberActiveAction}>
                       <input type="hidden" name="member_id" value={m.id} />
                       <input type="hidden" name="is_active" value={(!m.is_active).toString()} />
-                      <button
-                        type="submit"
+                      <SubmitButton
                         className="btn btn-secondary !px-3 !py-1.5 !text-sm"
+                        pendingText=""
                       >
                         {m.is_active ? "탈퇴 처리" : "재활성화"}
-                      </button>
+                      </SubmitButton>
                     </form>
                   )}
                   <DeleteMemberButton memberId={m.id} label={m.name} action={deleteMemberAction} />
@@ -461,9 +461,9 @@ export default async function AdminPage() {
               <input type="checkbox" name="is_guest" value="true" />
               게스트로 추가 (체크 안 하면 정회원으로 추가돼요)
             </label>
-            <button type="submit" className="btn btn-primary w-full">
+            <SubmitButton className="btn btn-primary w-full">
               회원 추가하기
-            </button>
+            </SubmitButton>
           </form>
         </details>
       </section>
@@ -495,9 +495,9 @@ export default async function AdminPage() {
             );
           })}
           <AutoFillSkillRanksButton />
-          <button type="submit" className="btn btn-primary w-full">
+          <SubmitButton className="btn btn-primary w-full">
             순위 저장하기
-          </button>
+          </SubmitButton>
         </form>
       </section>
 
@@ -515,14 +515,14 @@ export default async function AdminPage() {
                 <input type="hidden" name="member_id" value={m.id} />
                 <input type="hidden" name="is_admin" value={(!m.is_admin).toString()} />
                 <span className="font-semibold">{m.name}</span>
-                <button
-                  type="submit"
+                <SubmitButton
                   className={`btn !px-3 !py-1.5 !text-sm ${
                     m.is_admin ? "btn-primary" : "btn-secondary"
                   }`}
+                  pendingText=""
                 >
                   {m.is_admin ? "관리자 O" : "관리자 X"}
-                </button>
+                </SubmitButton>
               </form>
             ))}
         </div>

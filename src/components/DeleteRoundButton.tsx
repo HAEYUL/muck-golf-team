@@ -1,5 +1,7 @@
 "use client";
 
+import { SubmitButton } from "./SubmitButton";
+
 export function DeleteRoundButton({
   roundId,
   label,
@@ -20,13 +22,13 @@ export function DeleteRoundButton({
       }}
     >
       <input type="hidden" name="round_id" value={roundId} />
-      <button
-        type="submit"
+      <SubmitButton
         aria-label="라운딩 삭제"
         className="btn btn-danger !px-3 !py-1.5 !text-sm"
+        pendingText=""
       >
         ✕
-      </button>
+      </SubmitButton>
     </form>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { SubmitButton } from "./SubmitButton";
+
 export function DeleteMemberButton({
   memberId,
   label,
@@ -20,13 +22,13 @@ export function DeleteMemberButton({
       }}
     >
       <input type="hidden" name="member_id" value={memberId} />
-      <button
-        type="submit"
+      <SubmitButton
         aria-label="회원 삭제"
         className="btn btn-danger !px-3 !py-1.5 !text-sm"
+        pendingText=""
       >
         삭제
-      </button>
+      </SubmitButton>
     </form>
   );
 }

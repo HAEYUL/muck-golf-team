@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import { getLatestTeamAssignment, getRound, listMembers } from "@/lib/queries";
 import { TeamDrawGame } from "@/components/TeamDrawGame";
 import { TEAM_MODE_LABEL } from "@/lib/types";
 import { formatCourseLabel } from "@/lib/format";
+import { BackButton } from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -39,9 +39,7 @@ export default async function TeamDrawPage({
   return (
     <main className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
-        <Link href={`/rounds/${id}`} className="text-sm font-semibold text-fairway">
-          ← 라운딩으로
-        </Link>
+        <BackButton fallbackHref={`/rounds/${id}`} />
         <span className="text-sm text-foreground/50">
           {TEAM_MODE_LABEL[assignment.mode]} · {assignment.attempt_no}차
         </span>

@@ -1,6 +1,8 @@
-import Link from "next/link";
 import { savePersonalRoundAction } from "@/app/me/records/actions";
 import type { PersonalRound } from "@/lib/types";
+import { SubmitButton } from "./SubmitButton";
+import { SubmitThenBackForm } from "./SubmitThenBackForm";
+import { BackButton } from "./BackButton";
 
 const inputClass = "rounded-xl border-2 border-sand px-4 py-3 text-lg";
 const labelTextClass = "text-sm font-semibold text-foreground/70";
@@ -18,7 +20,11 @@ export function PersonalRoundForm({
   const selectedCompanions = new Set(round?.companion_member_ids ?? []);
 
   return (
-    <form action={savePersonalRoundAction} className="card flex flex-col gap-4">
+    <SubmitThenBackForm
+      action={savePersonalRoundAction}
+      fallbackHref="/me/records"
+      className="card flex flex-col gap-4"
+    >
       {round && <input type="hidden" name="id" value={round.id} />}
       <div className="flex gap-2">
         <label className="flex flex-1 flex-col gap-1">
@@ -128,12 +134,12 @@ export function PersonalRoundForm({
         />
       </label>
 
-      <button type="submit" className="btn btn-primary w-full">
+      <SubmitButton className="btn btn-primary w-full">
         {round ? "수정 저장하기" : "기록 저장하기"}
-      </button>
-      <Link href="/me/records" className="btn btn-secondary w-full">
+      </SubmitButton>
+      <BackButton fallbackHref="/me/records" className="btn btn-secondary w-full">
         취소
-      </Link>
-    </form>
+      </BackButton>
+    </SubmitThenBackForm>
   );
 }

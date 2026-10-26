@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
+import { BackButton } from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -99,9 +99,7 @@ export default async function GuidePage() {
   return (
     <main className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
-        <Link href="/" className="text-sm font-semibold text-fairway">
-          ← 홈으로
-        </Link>
+        <BackButton fallbackHref="/" />
         <h1 className="text-xl font-extrabold text-fairway-dark">📖 앱 가이드</h1>
       </header>
 

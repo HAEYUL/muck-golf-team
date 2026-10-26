@@ -334,7 +334,7 @@ export async function saveManualTeamsAction(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath(`/rounds/${roundId}`);
-  redirect(`/rounds/${roundId}`);
+  // 수동 편성 화면은 저장 후 클라이언트에서 바로 전 화면으로 돌아간다 (SubmitThenBackForm)
 }
 
 /** 관리자가 라운딩 목록에서 홈 화면에 노출할 라운딩을 고른다 (최대 3개까지 게시) */
@@ -436,7 +436,7 @@ export async function submitScoresAction(formData: FormData) {
   revalidatePath("/");
   revalidatePath(`/rounds/${roundId}`);
   revalidatePath("/memories");
-  redirect(`/rounds/${roundId}`);
+  // 스코어 입력 화면은 저장 후 클라이언트에서 바로 전 화면으로 돌아간다 (SubmitThenBackForm)
 }
 
 /** 스코어 입력과 무관하게, 로그인한 사람 누구나 라운딩 사진을 올릴 수 있는 액션 */
@@ -452,7 +452,7 @@ export async function uploadRoundPhotosAction(formData: FormData) {
   revalidatePath(`/rounds/${roundId}`);
   revalidatePath(`/rounds/${roundId}/photos`);
   revalidatePath("/memories");
-  redirect(`/rounds/${roundId}/photos`);
+  // 사진 올리기 화면은 업로드 후 클라이언트에서 바로 전 화면으로 돌아간다
 }
 
 /** 잘못 올라간 추억사진을 관리자가 삭제한다 */

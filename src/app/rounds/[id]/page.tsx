@@ -33,6 +33,8 @@ import {
   rsvpAction,
   updateRoundInfoAction,
 } from "../actions";
+import { SubmitButton } from "@/components/SubmitButton";
+import { BackButton } from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -97,9 +99,7 @@ export default async function RoundDetailPage({
   return (
     <main className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
-        <Link href="/" className="text-sm font-semibold text-fairway">
-          ← 홈으로
-        </Link>
+        <BackButton fallbackHref="/" />
         <StatusBadge status={round.status} />
       </header>
 
@@ -161,9 +161,9 @@ export default async function RoundDetailPage({
                   className="rounded-xl border-2 border-sand px-4 py-3 text-lg"
                 />
               </label>
-              <button type="submit" className="btn btn-primary w-full">
+              <SubmitButton className="btn btn-primary w-full">
                 수정 저장하기
-              </button>
+              </SubmitButton>
             </form>
           </details>
         )}
@@ -171,10 +171,10 @@ export default async function RoundDetailPage({
         {member.is_admin && round.status !== "모집중" && round.status !== "완료" && (
           <form action={revertRoundStatusAction}>
             <input type="hidden" name="round_id" value={round.id} />
-            <button type="submit" className="btn btn-secondary w-full !py-2 !text-sm">
+            <SubmitButton className="btn btn-secondary w-full !py-2 !text-sm">
               ⏪ 이전 단계({ROUND_STATUS_STEPS[ROUND_STATUS_STEPS.indexOf(round.status) - 1]})로
               되돌리기
-            </button>
+            </SubmitButton>
           </form>
         )}
       </section>
@@ -201,13 +201,13 @@ export default async function RoundDetailPage({
                   <form action={deleteSuggestionAction}>
                     <input type="hidden" name="suggestion_id" value={s.id} />
                     <input type="hidden" name="round_id" value={round.id} />
-                    <button
-                      type="submit"
+                    <SubmitButton
                       className="shrink-0 text-xs font-semibold text-danger"
                       aria-label="건의사항 삭제"
+                      pendingText=""
                     >
                       삭제
-                    </button>
+                    </SubmitButton>
                   </form>
                 )}
               </div>
@@ -222,9 +222,9 @@ export default async function RoundDetailPage({
               rows={2}
               className="rounded-xl border-2 border-sand px-4 py-3 text-base"
             />
-            <button type="submit" className="btn btn-secondary w-full">
+            <SubmitButton className="btn btn-secondary w-full">
               건의사항 남기기
-            </button>
+            </SubmitButton>
           </form>
         </section>
       )}
@@ -236,26 +236,24 @@ export default async function RoundDetailPage({
             <form action={rsvpAction} className="flex-1">
               <input type="hidden" name="round_id" value={round.id} />
               <input type="hidden" name="attending" value="true" />
-              <button
-                type="submit"
+              <SubmitButton
                 className={`btn w-full ${
                   myEntry?.attending ? "btn-primary" : "btn-secondary"
                 }`}
               >
                 참가 O
-              </button>
+              </SubmitButton>
             </form>
             <form action={rsvpAction} className="flex-1">
               <input type="hidden" name="round_id" value={round.id} />
               <input type="hidden" name="attending" value="false" />
-              <button
-                type="submit"
+              <SubmitButton
                 className={`btn w-full ${
                   myEntry && !myEntry.attending ? "btn-danger" : "btn-secondary"
                 }`}
               >
                 불참 X
-              </button>
+              </SubmitButton>
             </form>
           </div>
 
@@ -269,9 +267,9 @@ export default async function RoundDetailPage({
           {member.is_admin && (
             <form action={closeRsvpAction}>
               <input type="hidden" name="round_id" value={round.id} />
-              <button type="submit" className="btn btn-primary w-full">
+              <SubmitButton className="btn btn-primary w-full">
                 참가 체크 마감하기 ({attendingMembers.length}명 참가)
-              </button>
+              </SubmitButton>
             </form>
           )}
         </section>
@@ -314,9 +312,9 @@ export default async function RoundDetailPage({
               {member.is_admin && (
                 <form action={forceConfirmTeamsAction}>
                   <input type="hidden" name="round_id" value={round.id} />
-                  <button type="submit" className="btn btn-secondary w-full">
+                  <SubmitButton className="btn btn-secondary w-full">
                     모두 완료된 것으로 처리하고 확정하기
-                  </button>
+                  </SubmitButton>
                 </form>
               )}
               {member.is_admin && (
@@ -340,9 +338,9 @@ export default async function RoundDetailPage({
                         {TEAM_MODE_LABEL[mode]}
                       </label>
                     ))}
-                    <button type="submit" className="btn btn-primary w-full">
+                    <SubmitButton className="btn btn-primary w-full">
                       새로 뽑기 (게임 처음부터 다시 시작)
-                    </button>
+                    </SubmitButton>
                   </form>
                   <Link
                     href={`/rounds/${round.id}/teams/edit`}
@@ -373,9 +371,9 @@ export default async function RoundDetailPage({
                     </label>
                   ))}
                 </div>
-                <button type="submit" className="btn btn-primary w-full">
+                <SubmitButton className="btn btn-primary w-full">
                   🏌️ 팀 뽑기 게임 시작하기
-                </button>
+                </SubmitButton>
               </form>
               <Link href={`/rounds/${round.id}/teams/edit`} className="btn btn-secondary w-full">
                 ✍️ 수동으로 편성하기
@@ -388,9 +386,9 @@ export default async function RoundDetailPage({
           {member.is_admin && !assignment && (
             <form action={reopenRsvpAction}>
               <input type="hidden" name="round_id" value={round.id} />
-              <button type="submit" className="btn btn-secondary w-full">
+              <SubmitButton className="btn btn-secondary w-full">
                 참가 체크 다시 열기
-              </button>
+              </SubmitButton>
             </form>
           )}
 
@@ -439,9 +437,9 @@ export default async function RoundDetailPage({
                         {TEAM_MODE_LABEL[mode]}
                       </label>
                     ))}
-                    <button type="submit" className="btn btn-primary w-full">
+                    <SubmitButton className="btn btn-primary w-full">
                       새로 뽑기
-                    </button>
+                    </SubmitButton>
                   </form>
                   <Link
                     href={`/rounds/${round.id}/teams/edit`}
