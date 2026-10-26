@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import {
@@ -11,6 +10,9 @@ import { TEAM_THEMES } from "@/lib/types";
 import { formatCourseLabel } from "@/lib/format";
 import { sortIdsByOrder } from "@/lib/sort";
 import { submitScoresAction } from "../../actions";
+import { SubmitButton } from "@/components/SubmitButton";
+import { BackButton } from "@/components/BackButton";
+import { SubmitThenBackForm } from "@/components/SubmitThenBackForm";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +38,7 @@ export default async function ScorePage({
   return (
     <main className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
-        <Link href={`/rounds/${id}`} className="text-sm font-semibold text-fairway">
-          ← 라운딩으로
-        </Link>
+        <BackButton fallbackHref={`/rounds/${id}`} />
       </header>
 
       <div>
@@ -46,7 +46,11 @@ export default async function ScorePage({
         <p className="text-foreground/70">{formatCourseLabel(round)}</p>
       </div>
 
-      <form action={submitScoresAction} className="flex flex-col gap-4">
+      <SubmitThenBackForm
+        action={submitScoresAction}
+        fallbackHref={`/rounds/${id}`}
+        className="flex flex-col gap-4"
+      >
         <input type="hidden" name="round_id" value={id} />
 
         {Object.entries(assignment.teams).map(([teamNo, ids]) => {
@@ -91,10 +95,10 @@ export default async function ScorePage({
           />
         </div>
 
-        <button type="submit" className="btn btn-primary w-full">
+        <SubmitButton className="btn btn-primary w-full">
           스코어 저장하고 완료 처리하기
-        </button>
-      </form>
+        </SubmitButton>
+      </SubmitThenBackForm>
     </main>
   );
 }

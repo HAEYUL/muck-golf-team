@@ -4,6 +4,7 @@ import { getCurrentMember } from "@/lib/session";
 import { listMemberScoreHistory } from "@/lib/queries";
 import { formatCourseLabel, formatDate } from "@/lib/format";
 import { getCharacterUrl } from "@/lib/characters";
+import { BackButton } from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +23,7 @@ export default async function MePage() {
   return (
     <main className="flex flex-col gap-6">
       <header className="flex items-center justify-between">
-        <Link href="/" className="text-sm font-semibold text-fairway">
-          ← 홈으로
-        </Link>
+        <BackButton fallbackHref="/" />
         <h1 className="text-xl font-extrabold text-fairway-dark">🙋 마이페이지</h1>
       </header>
 

@@ -15,6 +15,7 @@ import { AddToHomeScreenButton } from "@/components/AddToHomeScreenButton";
 import { getCharacterUrl } from "@/lib/characters";
 import { formatDate } from "@/lib/format";
 import { SongReplayButton, SongToggleButton } from "@/components/MuckSongButtons";
+import { SubmitButton } from "@/components/SubmitButton";
 
 export const dynamic = "force-dynamic";
 
@@ -81,9 +82,9 @@ export default async function HomePage() {
           </div>
         </div>
         <form action={logoutAction}>
-          <button className="btn btn-secondary !px-4 !py-2 !text-sm">
+          <SubmitButton pendingText="" className="btn btn-secondary !px-4 !py-2 !text-sm">
             다른 이름으로
-          </button>
+          </SubmitButton>
         </form>
       </header>
 

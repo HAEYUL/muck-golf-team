@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentMember } from "@/lib/session";
 import {
@@ -10,6 +9,9 @@ import {
 import { formatCourseLabel } from "@/lib/format";
 import { TEAM_THEMES } from "@/lib/types";
 import { saveManualTeamsAction } from "../../../actions";
+import { SubmitButton } from "@/components/SubmitButton";
+import { BackButton } from "@/components/BackButton";
+import { SubmitThenBackForm } from "@/components/SubmitThenBackForm";
 
 export const dynamic = "force-dynamic";
 
@@ -49,9 +51,7 @@ export default async function EditTeamsPage({
     return (
       <main className="flex flex-col gap-6">
         <header>
-          <Link href={`/rounds/${id}`} className="text-sm font-semibold text-fairway">
-            ← 라운딩으로
-          </Link>
+          <BackButton fallbackHref={`/rounds/${id}`} />
         </header>
         <p className="card text-center text-foreground/70">
           참가 확정된 인원이 없어서 팀을 편성할 수 없어요.
@@ -63,9 +63,7 @@ export default async function EditTeamsPage({
   return (
     <main className="flex flex-col gap-6">
       <header>
-        <Link href={`/rounds/${id}`} className="text-sm font-semibold text-fairway">
-          ← 라운딩으로
-        </Link>
+        <BackButton fallbackHref={`/rounds/${id}`} />
       </header>
 
       <div>
@@ -73,7 +71,11 @@ export default async function EditTeamsPage({
         <p className="text-foreground/70">{formatCourseLabel(round)}</p>
       </div>
 
-      <form action={saveManualTeamsAction} className="flex flex-col gap-3">
+      <SubmitThenBackForm
+        action={saveManualTeamsAction}
+        fallbackHref={`/rounds/${id}`}
+        className="flex flex-col gap-3"
+      >
         <input type="hidden" name="round_id" value={id} />
         <div className="card flex flex-col gap-3">
           {attendingIds.map((memberId) => {
@@ -97,10 +99,10 @@ export default async function EditTeamsPage({
             );
           })}
         </div>
-        <button type="submit" className="btn btn-primary w-full">
+        <SubmitButton className="btn btn-primary w-full">
           이 팀 편성으로 확정하기
-        </button>
-      </form>
+        </SubmitButton>
+      </SubmitThenBackForm>
     </main>
   );
 }

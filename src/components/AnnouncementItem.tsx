@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Announcement } from "@/lib/types";
 import { formatDate } from "@/lib/format";
+import { SubmitButton } from "./SubmitButton";
 
 type Mode = "view" | "edit" | "repost";
 
@@ -72,13 +73,13 @@ export function AnnouncementItem({
             }}
           >
             <input type="hidden" name="announcement_id" value={a.id} />
-            <button
-              type="submit"
+            <SubmitButton
+              pendingText=""
               aria-label="공지사항 삭제"
               className={`${smallBtn} bg-white text-danger`}
             >
               삭제
-            </button>
+            </SubmitButton>
           </form>
         </div>
       </div>

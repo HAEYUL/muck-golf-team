@@ -81,6 +81,76 @@ body {
   cursor: not-allowed;
 }
 
+/* 처리 중(서버에 다녀오는 중)인 버튼: 잠기지만 너무 흐려지지 않게 */
+.btn[aria-busy="true"] {
+  opacity: 0.8;
+  cursor: progress;
+}
+
+/* 처리 중 버튼 안에서 도는 동그라미 */
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.3em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 9999px;
+  vertical-align: -0.15em;
+  animation: muck-spin 0.7s linear infinite;
+}
+
+.btn .spinner {
+  margin-right: 0;
+}
+
+@keyframes muck-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+ * 클릭할 수 있는 모든 곳(링크, 버튼, 펼치기 메뉴, 선택 칸)은 누르는 순간 살짝 작아지고 흐려진다.
+ * .btn·.name-box는 위에 자체 눌림 효과가 있고, 그 외는 여기서 한 번에 처리한다.
+ * base 레이어라서 각 요소의 Tailwind 클래스가 있으면 그쪽이 우선한다.
+ */
+@layer base {
+  a,
+  button,
+  summary,
+  label:has(input[type="radio"], input[type="checkbox"]) {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    cursor: pointer;
+    transition: transform 0.08s ease, opacity 0.15s ease;
+  }
+
+  /* 꾹 눌렀을 때 글자가 파랗게 선택되지 않게 */
+  summary,
+  label:has(input[type="radio"], input[type="checkbox"]) {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* 글자 링크(← 뒤로 등)도 크기 효과가 보이도록 */
+  a {
+    display: inline-block;
+  }
+
+  :where(a, button, summary, label:has(input[type="radio"], input[type="checkbox"])):active:not(
+      :disabled
+    ) {
+    transform: scale(0.96);
+    opacity: 0.7;
+  }
+
+  /* 큰 카드는 덜 줄어들게 */
+  a.card:active {
+    transform: scale(0.98);
+  }
+}
+
 .btn-primary {
   background: var(--fairway);
   color: white;

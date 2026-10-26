@@ -1,5 +1,7 @@
 "use client";
 
+import { SubmitButton } from "./SubmitButton";
+
 /** 누르면 확인창을 띄우고, 확인했을 때만 제출하는 폼 버튼 */
 export function ConfirmSubmitButton({
   action,
@@ -24,9 +26,9 @@ export function ConfirmSubmitButton({
       {Object.entries(fields).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
-      <button type="submit" className={className}>
+      <SubmitButton pendingText="" className={className}>
         {label}
-      </button>
+      </SubmitButton>
     </form>
   );
 }

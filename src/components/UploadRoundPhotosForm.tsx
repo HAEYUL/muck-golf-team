@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { uploadRoundPhotosAction } from "@/app/rounds/actions";
+import { goBack } from "@/lib/navigation";
 
 /** 캔버스로 리사이즈 + 재압축해서 용량이 큰 원본 사진도 안전하게 올라가게 한다 */
 async function compressImage(file: File): Promise<File> {
@@ -47,6 +49,7 @@ export function UploadRoundPhotosForm({ roundId }: { roundId: string }) {
   const [status, setStatus] = useState<"idle" | "compressing">("idle");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,8 +66,9 @@ export function UploadRoundPhotosForm({ roundId }: { roundId: string }) {
       compressed.forEach((file) => formData.append("photos", file));
 
       setStatus("idle");
-      startTransition(() => {
-        uploadRoundPhotosAction(formData);
+      startTransition(async () => {
+        await uploadRoundPhotosAction(formData);
+        goBack(router, `/rounds/${roundId}/photos`);
       });
     } catch {
       setStatus("idle");

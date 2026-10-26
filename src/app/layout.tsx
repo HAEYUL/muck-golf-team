@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SongMiniPlayer } from "@/components/MuckSongButtons";
 import { TouchActivation } from "@/components/TouchActivation";
+import { NavigationProgress } from "@/components/NavigationProgress";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <TouchActivation />
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         <div className="mx-auto w-full max-w-md flex-1 flex flex-col px-4 pb-10 pt-6">
           {children}
         </div>
