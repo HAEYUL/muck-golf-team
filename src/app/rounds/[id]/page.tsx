@@ -18,6 +18,7 @@ import { TeamResultsList } from "@/components/TeamResultsList";
 import { ScoreRankedList } from "@/components/ScoreRankedList";
 import { ParticipantChecklist } from "@/components/ParticipantChecklist";
 import { PhotoGallery } from "@/components/PhotoGallery";
+import { TeamRevealSection } from "@/components/TeamRevealSection";
 import { ROUND_STATUS_STEPS, TEAM_MODE_DESCRIPTION, TEAM_MODE_LABEL } from "@/lib/types";
 import type { TeamMode } from "@/lib/types";
 import {
@@ -27,6 +28,7 @@ import {
   createTeamAssignmentAction,
   forceConfirmTeamsAction,
   reopenRsvpAction,
+  revealTeamAction,
   revertRoundStatusAction,
   rsvpAction,
   updateRoundInfoAction,
@@ -85,6 +87,12 @@ export default async function RoundDetailPage({
         .filter((mid) => !revealedSet.has(mid))
         .map(getName)
     : [];
+  const teamByMember: Record<string, number> = {};
+  if (assignment) {
+    Object.entries(assignment.teams).forEach(([teamNo, ids]) => {
+      ids.forEach((mid) => (teamByMember[mid] = Number(teamNo)));
+    });
+  }
 
   return (
     <main className="flex flex-col gap-6">
@@ -269,6 +277,18 @@ export default async function RoundDetailPage({
         </section>
       )}
 
+      {round.status === "조편성중" && assignment && (
+        <TeamRevealSection
+          roundId={round.id}
+          participants={attendingMembers.map((m) => ({ id: m.id, name: m.name }))}
+          mode={assignment.mode}
+          teamByMember={teamByMember}
+          revealedIds={reveals.map((r) => r.member_id)}
+          currentMemberId={member.id}
+          revealAction={revealTeamAction}
+        />
+      )}
+
       {round.status === "조편성중" && (
         <section className="card flex flex-col gap-3">
           <h2 className="text-lg font-bold">
@@ -291,9 +311,6 @@ export default async function RoundDetailPage({
                   </span>
                 )}
               </p>
-              <Link href="/" className="btn btn-primary w-full">
-                🎲 홈 화면에서 게임 참여하기
-              </Link>
               {member.is_admin && (
                 <form action={forceConfirmTeamsAction}>
                   <input type="hidden" name="round_id" value={round.id} />
