@@ -11,6 +11,7 @@ const CHARACTER_URLS: Record<string, string> = {
   최홍창: "/characters/최홍창.webp",
   이효신: "/characters/이효신.webp",
   채효진: "/characters/채효진.webp",
+  황선정: "/characters/황선정.webp",
 };
 
 export function getCharacterUrl(name: string, characterUrl?: string | null): string | null {
