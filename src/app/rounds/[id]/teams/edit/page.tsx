@@ -7,11 +7,9 @@ import {
   listParticipants,
 } from "@/lib/queries";
 import { formatCourseLabel } from "@/lib/format";
-import { TEAM_THEMES } from "@/lib/types";
 import { saveManualTeamsAction } from "../../../actions";
-import { SubmitButton } from "@/components/SubmitButton";
 import { BackButton } from "@/components/BackButton";
-import { SubmitThenBackForm } from "@/components/SubmitThenBackForm";
+import { ManualTeamEditor } from "@/components/ManualTeamEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -71,38 +69,19 @@ export default async function EditTeamsPage({
         <p className="text-foreground/70">{formatCourseLabel(round)}</p>
       </div>
 
-      <SubmitThenBackForm
+      <ManualTeamEditor
+        roundId={id}
+        initial={attendingIds.map((memberId) => ({
+          id: memberId,
+          name: memberMap.get(memberId)?.name ?? "?",
+          team: currentTeamByMember.get(memberId) ?? "1",
+        }))}
+        candidates={members
+          .filter((m) => !attendingIdSet.has(m.id) && m.is_active)
+          .map((m) => ({ id: m.id, name: m.name, isGuest: m.is_guest }))}
         action={saveManualTeamsAction}
         fallbackHref={`/rounds/${id}`}
-        className="flex flex-col gap-3"
-      >
-        <input type="hidden" name="round_id" value={id} />
-        <div className="card flex flex-col gap-3">
-          {attendingIds.map((memberId) => {
-            const name = memberMap.get(memberId)?.name ?? "?";
-            const defaultTeam = currentTeamByMember.get(memberId) ?? "1";
-            return (
-              <div key={memberId} className="flex items-center justify-between gap-3">
-                <span className="font-semibold">{name}</span>
-                <select
-                  name={`team_${memberId}`}
-                  defaultValue={defaultTeam}
-                  className="rounded-lg border-2 border-sand px-3 py-2 text-center font-bold"
-                >
-                  {TEAM_THEMES.map((theme) => (
-                    <option key={theme.no} value={theme.no}>
-                      {theme.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            );
-          })}
-        </div>
-        <SubmitButton className="btn btn-primary w-full">
-          이 팀 편성으로 확정하기
-        </SubmitButton>
-      </SubmitThenBackForm>
+      />
     </main>
   );
 }
