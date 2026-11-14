@@ -293,17 +293,78 @@ export async function forceConfirmTeamsAction(formData: FormData) {
 export async function saveManualTeamsAction(formData: FormData) {
   const admin = await requireAdmin();
   const roundId = String(formData.get("round_id") ?? "");
+  if (!roundId) throw new Error("라운딩을 찾을 수 없어요.");
 
-  const participants = await listParticipants(roundId);
+  const supabase = getSupabaseAdmin();
+  const [participants, members] = await Promise.all([
+    listParticipants(roundId),
+    listMembers(),
+  ]);
+  const memberIds = new Set(members.map((m) => m.id));
   const attendingIds = new Set(
     participants.filter((p) => p.attending).map((p) => p.member_id)
   );
 
   const teams: Record<string, string[]> = {};
-  for (const memberId of attendingIds) {
-    const teamNo = String(formData.get(`team_${memberId}`) ?? "1");
+  const addToTeam = (teamNo: string, memberId: string) => {
+    if (!/^[1-4]$/.test(teamNo)) teamNo = "1";
     if (!teams[teamNo]) teams[teamNo] = [];
-    teams[teamNo].push(memberId);
+    if (!teams[teamNo].includes(memberId)) teams[teamNo].push(memberId);
+  };
+  const setAttending = async (memberId: string, attending: boolean) => {
+    const { error } = await supabase.from("round_participants").upsert(
+      {
+        round_id: roundId,
+        member_id: memberId,
+        attending,
+        checked_at: new Date().toISOString(),
+      },
+      { onConflict: "round_id,member_id" }
+    );
+    if (error) throw new Error(error.message);
+  };
+
+  // 1) 기존 회원: 조 배정 / 불참 처리 / 대타로 새로 참가
+  const seen = new Set<string>();
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith("team_")) continue;
+    const memberId = key.slice("team_".length);
+    if (!memberIds.has(memberId)) continue;
+    seen.add(memberId);
+    const slot = String(value);
+    if (slot === "absent") {
+      if (attendingIds.has(memberId)) await setAttending(memberId, false);
+      continue;
+    }
+    if (!attendingIds.has(memberId)) await setAttending(memberId, true);
+    addToTeam(slot, memberId);
+  }
+  // 화면에 없던 참가자(예: 편집 중 다른 사람이 참가 체크)는 빠지지 않도록 1조에 둔다
+  for (const memberId of attendingIds) {
+    if (!seen.has(memberId)) addToTeam("1", memberId);
+  }
+
+  // 2) 새 게스트: 같은 이름 회원이 있으면 그 회원을 쓰고, 없으면 게스트로 새로 등록한다
+  const guestNames = formData.getAll("guest_name").map((v) => String(v).trim());
+  const guestTeams = formData.getAll("guest_team").map((v) => String(v));
+  let maxSkill = members.reduce((max, m) => Math.max(max, m.skill_rank), 0);
+  for (let i = 0; i < guestNames.length; i++) {
+    const name = guestNames[i];
+    if (!name) continue;
+    const sameName = members.filter((m) => m.name.trim() === name);
+    let memberId = (sameName.find((m) => m.is_guest) ?? sameName[0])?.id;
+    if (!memberId) {
+      maxSkill += 1;
+      const { data, error } = await supabase
+        .from("members")
+        .insert({ name, gender: "남", is_guest: true, skill_rank: maxSkill })
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      memberId = data.id as string;
+    }
+    await setAttending(memberId, true);
+    addToTeam(guestTeams[i] ?? "1", memberId);
   }
 
   if (Object.keys(teams).length === 0) {
@@ -333,6 +394,7 @@ export async function saveManualTeamsAction(formData: FormData) {
   }
 
   revalidatePath("/");
+  revalidatePath("/admin");
   revalidatePath(`/rounds/${roundId}`);
   // 수동 편성 화면은 저장 후 클라이언트에서 바로 전 화면으로 돌아간다 (SubmitThenBackForm)
 }
